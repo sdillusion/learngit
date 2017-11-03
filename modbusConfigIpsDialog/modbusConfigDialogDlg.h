@@ -31,6 +31,17 @@ struct METHODSTRUCT{
 	int no;
 };
 
+struct COMPANYSTRUCT{
+	CString desc;
+	CString id;
+};
+
+struct BIGTYPESTRUCT{
+	CString desc;
+	CString id;
+	CString companyid;
+};
+
 struct commonData{
 	int reqInterval;
 	char checkhorl;
@@ -222,6 +233,8 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CModbusConfigDialogDlg)
 	enum { IDD = IDD_MODBUSCONFIGDIALOG_DIALOG };
+	CComboBox	m_combo_bigtype;
+	CComboBox	m_combo_company;
 	CButton	m_check_bigused;
 	CEdit	m_edit_nanvalue;
 	CEdit	m_edit_nankey;
@@ -259,6 +272,8 @@ public:
 	int		m_edit_nanvalue_val;
 	BOOL	m_check_bigused_val;
 	CString	m_edit_remark_val;
+	int		m_combo_company_val;
+	int		m_combo_bigtype_val;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
@@ -390,6 +405,8 @@ public:
 	int getDataFromDB();
 
 	void getMethodFromFile();
+	void getCompanyFromC5DB();
+	void getBigTypeFromC5DB(CString companyid);
 	void int2str(const int &int_temp,std::string &string_temp);
 	
 // Implementation
@@ -436,6 +453,8 @@ protected:
 	afx_msg void OnCheckBigused();
 	afx_msg void OnChangeEditRemark();
 	virtual void OnOK();
+	afx_msg void OnSelchangeComboCompany();
+	afx_msg void OnSelchangeComboBigtype();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
@@ -469,6 +488,8 @@ public:
 static int CALLBACK listCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 int CopyFile(char *SourceFile,char *NewFile);
 int FindIndexInMethodVector(vector<METHODSTRUCT> v, int no);
+int FindIndexInCompanyVector(vector<COMPANYSTRUCT> v, CString id);
+int FindIndexInBigtypeVector(vector<BIGTYPESTRUCT> v, CString id);
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

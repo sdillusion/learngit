@@ -42,6 +42,10 @@ struct RTUSTRUCT{
 
 //vector<RTUSTRUCT>vRtu;
 vector<METHODSTRUCT>vMethod;
+vector<bigstruct> vbig;
+
+vector<COMPANYSTRUCT>vCompany;
+vector<BIGTYPESTRUCT>vBigtype;
 
 sqlite3 * pDB = NULL;
 char gDBpath[CHARLEN];
@@ -55,7 +59,7 @@ struct ddtype gDdType;
 //commonData commond;
 
 //bigstruct bigs[SECTIONNUM];
-vector<bigstruct> vbig;
+
 
 bool gIsChanged = false;
 const int YCNUMLIMITE = 30;
@@ -84,6 +88,8 @@ CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	m_edit_nanvalue_val = 0;
 	m_check_bigused_val = FALSE;
 	m_edit_remark_val = _T("");
+	m_combo_company_val = -1;
+	m_combo_bigtype_val = -1;
 	//}}AFX_DATA_INIT
 	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -101,6 +107,8 @@ void CModbusConfigDialogDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CModbusConfigDialogDlg)
+	DDX_Control(pDX, IDC_COMBO_BIGTYPE, m_combo_bigtype);
+	DDX_Control(pDX, IDC_COMBO_COMPANY, m_combo_company);
 	DDX_Control(pDX, IDC_CHECK_BIGUSED, m_check_bigused);
 	DDX_Control(pDX, IDC_EDIT_NANVALUE, m_edit_nanvalue);
 	DDX_Control(pDX, IDC_EDIT_NANKEY, m_edit_nankey);
@@ -133,6 +141,8 @@ void CModbusConfigDialogDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_NANVALUE, m_edit_nanvalue_val);
 	DDX_Check(pDX, IDC_CHECK_BIGUSED, m_check_bigused_val);
 	DDX_Text(pDX, IDC_EDIT_REMARK, m_edit_remark_val);
+	DDX_CBIndex(pDX, IDC_COMBO_COMPANY, m_combo_company_val);
+	DDX_CBIndex(pDX, IDC_COMBO_BIGTYPE, m_combo_bigtype_val);
 	//}}AFX_DATA_MAP
 }
 
@@ -174,6 +184,8 @@ BEGIN_MESSAGE_MAP(CModbusConfigDialogDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_TESTC5DB, OnButtonTestc5db)
 	ON_BN_CLICKED(IDC_CHECK_BIGUSED, OnCheckBigused)
 	ON_EN_CHANGE(IDC_EDIT_REMARK, OnChangeEditRemark)
+	ON_CBN_SELCHANGE(IDC_COMBO_COMPANY, OnSelchangeComboCompany)
+	ON_CBN_SELCHANGE(IDC_COMBO_BIGTYPE, OnSelchangeComboBigtype)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -737,6 +749,14 @@ void CModbusConfigDialogDlg::OnSelchangeListType()
 	m_combo_crc_val = bigstr.checkcrc;
 	m_combo_addrhorl_val = bigstr.addrhorl == 'h' ? 0 : 1;
 	m_check_bigused_val = bigstr.used ? true : false;
+	//
+	m_combo_bigtype_val = FindIndexInBigtypeVector(vBigtype, CString(bigstr.type));
+	if(m_combo_bigtype_val >= 0){
+		m_combo_company_val = FindIndexInCompanyVector(vCompany, vBigtype.at(m_combo_bigtype_val).companyid);
+	}else{
+		m_combo_company_val = -1;
+	}
+
 	m_edit_remark_val.Format("%s", bigstr.remark);
 	UpdateData(FALSE);
 }
@@ -981,6 +1001,9 @@ void CModbusConfigDialogDlg::saveBigConfig(){
 	vbig.at(m_type_sel).checkcrc = m_combo_crc_val;
 	vbig.at(m_type_sel).addrhorl = m_combo_addrhorl_val == 1?'l':'h';
 	vbig.at(m_type_sel).used = m_check_bigused_val ? 1 : 0;
+	if(m_combo_bigtype_val >= 0){
+		strcpy(vbig.at(m_type_sel).type , vBigtype.at(m_combo_bigtype_val).id.GetBuffer(0));
+	}
 	strcpy(vbig.at(m_type_sel).remark, m_edit_remark_val.GetBuffer(0));
 
 	//for(int i = 0; i < m_yctypeNum; i++){
@@ -1504,6 +1527,8 @@ void CModbusConfigDialogDlg::checkIsChanged(){
 		int key = MessageBox("设置已改变，是否要保存？","警告",MB_YESNO);
 		if(key == IDYES){
 			OnButtonSaveconfigtodb();
+		}else{
+			gIsChanged = false;
 		}
 	}
 	return;
@@ -1527,7 +1552,8 @@ void CModbusConfigDialogDlg::OnSelchangeComboAddrhorl()
 {
 	// TODO: Add your control notification handler code here
 	gIsChanged = true;
-	saveConfig();
+	UpdateData(TRUE);
+	saveBigConfig();
 }
 
 void CModbusConfigDialogDlg::OnSelchangeComboHorl() 
@@ -1611,7 +1637,8 @@ void CModbusConfigDialogDlg::OnSelchangeComboCrc()
 {
 	// TODO: Add your control notification handler code here
 	gIsChanged = true;
-	saveConfig();
+	UpdateData(TRUE);
+	saveBigConfig();
 }
 /*
 void CModbusConfigDialogDlg::OnEditchangeComboInterval() 
@@ -2030,6 +2057,7 @@ void CModbusConfigDialogDlg::OnButtonOpen()
 	}
 */	
 	if(m_c5db.openDB()){
+		getCompanyFromC5DB();
 		C5DBbigQuery(m_c5db);
 		refreshTypeUI();
 		//m_c5db.closeDB();
@@ -2065,6 +2093,12 @@ void CModbusConfigDialogDlg::refreshTypeUI(){
 			//str = str + vbig.at(i).desc;
 			m_list_type.AddString(str.GetBuffer(0));
 		}
+	}
+
+	m_combo_company.ResetContent();
+	len = vCompany.size();
+	for(int i = 0; i < len; i++){
+		m_combo_company.AddString(vCompany.at(i).desc.GetBuffer(0));
 	}
 }
 
@@ -2452,6 +2486,49 @@ void CModbusConfigDialogDlg::getMethodFromFile(){
 	}
 }
 
+void CModbusConfigDialogDlg::getCompanyFromC5DB(){
+	CString sqlStr = "select F1101_CODE,F1101_DESC from TB1101_COMPANY";
+	_RecordsetPtr m_pRecordset;
+	if(m_c5db.querySQL(sqlStr, m_pRecordset)){
+		while(!m_pRecordset->GetadoEOF()){
+			_variant_t varName;
+			COMPANYSTRUCT companystr;
+			varName = m_pRecordset->GetCollect ("F1101_DESC");
+			companystr.desc = (char *)_bstr_t(varName);
+			varName = m_pRecordset->GetCollect ("F1101_CODE");
+			companystr.id =  (char *)_bstr_t(varName);
+
+			vCompany.push_back(companystr);
+
+			m_pRecordset->MoveNext();
+		}
+		m_pRecordset->Close();
+		m_pRecordset.Release();
+	}
+}
+
+void CModbusConfigDialogDlg::getBigTypeFromC5DB(CString companyid){
+	CString sqlStr = "select F1102_CODE,F1102_DESC from TB1102_PROTOCOLTYPE where F1101_CODE = '" + companyid + "'";
+	_RecordsetPtr m_pRecordset;
+	if(m_c5db.querySQL(sqlStr, m_pRecordset)){
+		vBigtype.clear();
+		while(!m_pRecordset->GetadoEOF()){
+			_variant_t varName;
+			BIGTYPESTRUCT bigtypestr;
+			varName = m_pRecordset->GetCollect ("F1102_DESC");
+			bigtypestr.desc = (char *)_bstr_t(varName);
+			varName = m_pRecordset->GetCollect ("F1102_CODE");
+			bigtypestr.id =  (char *)_bstr_t(varName);
+			bigtypestr.companyid = companyid;
+			vBigtype.push_back(bigtypestr);
+
+			m_pRecordset->MoveNext();
+		}
+		m_pRecordset->Close();
+		m_pRecordset.Release();
+	}
+}
+
 void CModbusConfigDialogDlg::int2str(const int &int_temp,string &string_temp)  
 {  
 	stringstream stream;  
@@ -2464,6 +2541,28 @@ int FindIndexInMethodVector(vector<METHODSTRUCT> v, int no){
 	while(size>0){
 		size--;
 		if(no == v.at(size).no){
+			return size;
+		}
+	}
+	return -1;
+}
+
+int FindIndexInCompanyVector(vector<COMPANYSTRUCT> v, CString id){
+	int size = v.size();
+	while(size>0){
+		size--;
+		if(id == v.at(size).id){
+			return size;
+		}
+	}
+	return -1;
+}
+
+int FindIndexInBigtypeVector(vector<BIGTYPESTRUCT> v, CString id){
+	int size = v.size();
+	while(size>0){
+		size--;
+		if(id == v.at(size).id){
 			return size;
 		}
 	}
@@ -2750,7 +2849,7 @@ void CModbusConfigDialogDlg::insertDataYcToC5DB(C5DB c5db){
 	}
 }
 void CModbusConfigDialogDlg::insertDataYxToC5DB(C5DB c5db){
-	char * yxgroupHeadName = "F2001_CODE,F2004_CODE,F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2002_RXDATALENBIT,F2002_RXDATALENBITHL";
+	char * yxgroupHeadName = "F2001_CODE,F2004_CODE,F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL";
 	char * yxHeadName = "F2001_CODE,F2004_CODE,F2005_CODE,F2005_DESC,F2005_USED,F2005_POINTNO";
 	for(int i = 0; i < gYxType.yxseclen; i++){
 		int yxslen = gYxType.m_yxss[i].yxslen;
@@ -3285,7 +3384,8 @@ void CModbusConfigDialogDlg::OnCheckBigused()
 {
 	// TODO: Add your control notification handler code here
 	gIsChanged = true;
-	saveConfig();
+	UpdateData(TRUE);
+	saveBigConfig();
 }
 
 void CModbusConfigDialogDlg::OnChangeEditRemark() 
@@ -3297,7 +3397,8 @@ void CModbusConfigDialogDlg::OnChangeEditRemark()
 	
 	// TODO: Add your control notification handler code here
 	gIsChanged = true;
-	saveConfig();
+	UpdateData(TRUE);
+	saveBigConfig();
 }
 
 
@@ -3306,4 +3407,27 @@ void CModbusConfigDialogDlg::OnOK()
 	// TODO: Add extra validation here
 	
 	//CDialog::OnOK();
+}
+
+void CModbusConfigDialogDlg::OnSelchangeComboCompany() 
+{
+	// TODO: Add your control notification handler code here
+	gIsChanged = true;
+	UpdateData(TRUE);
+
+	getBigTypeFromC5DB(vCompany.at(m_combo_company_val).id);
+
+	m_combo_bigtype.ResetContent();
+	int len = vBigtype.size();
+	for(int i = 0; i < len; i++){
+		m_combo_bigtype.AddString(vBigtype.at(i).desc.GetBuffer(0));
+	}
+}
+
+void CModbusConfigDialogDlg::OnSelchangeComboBigtype() 
+{
+	// TODO: Add your control notification handler code here
+	gIsChanged = true;
+	UpdateData(TRUE);
+	saveBigConfig();
 }

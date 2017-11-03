@@ -64,7 +64,8 @@
 #define IDC_BUTTON_TESTC5DB             1084
 #define IDC_CHECK_BIGUSED               1085
 #define IDC_EDIT_REMARK                 1086
-#define IDC_COMBO1                      1088
+#define IDC_COMBO_COMPANY               1089
+#define IDC_COMBO_BIGTYPE               1090
 
 // Next default values for new objects
 // 
@@ -72,7 +73,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1089
+#define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

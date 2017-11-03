@@ -6,13 +6,27 @@
 --------------------Configuration: modbusConfigDialog - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPBC1C.tmp" with contents
+Creating command line "rc.exe /l 0x804 /fo"Debug/modbusConfigDialog.res" /d "_DEBUG" /d "_AFXDLL" "D:\code\VC6\modbusConfigIpsDialog\modbusConfigDialog.rc"" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPFB3B.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\code\VC6\modbusConfigIpsDialog\c5db.cpp"
+]
+Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSPFB3B.tmp" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPFB3C.tmp" with contents
 [
 /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /FR"Debug/" /Fp"Debug/modbusConfigDialog.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\code\VC6\modbusConfigIpsDialog\modbusConfigDialog.cpp"
 "D:\code\VC6\modbusConfigIpsDialog\modbusConfigDialogDlg.cpp"
 ]
-Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSPBC1C.tmp" 
-Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPBC1D.tmp" with contents
+Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSPFB3C.tmp" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPFB3D.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /FR"Debug/" /Fp"Debug/modbusConfigDialog.pch" /Yc"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\code\VC6\modbusConfigIpsDialog\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSPFB3D.tmp" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPFB3E.tmp" with contents
 [
 sqlite3.lib libdb.lib /nologo /subsystem:windows /incremental:yes /pdb:"Debug/modbusConfigDialog.pdb" /debug /machine:I386 /out:"Debug/modbusConfigDialog.exe" /pdbtype:sept 
 .\Debug\c5db.obj
@@ -21,10 +35,17 @@ sqlite3.lib libdb.lib /nologo /subsystem:windows /incremental:yes /pdb:"Debug/mo
 .\Debug\StdAfx.obj
 .\Debug\modbusConfigDialog.res
 ]
-Creating command line "link.exe @C:\Users\illusion\AppData\Local\Temp\RSPBC1D.tmp"
+Creating command line "link.exe @C:\Users\illusion\AppData\Local\Temp\RSPFB3E.tmp"
 <h3>Output Window</h3>
+Compiling resources...
 Compiling...
+StdAfx.cpp
+Compiling...
+c5db.cpp
+Compiling...
+modbusConfigDialog.cpp
 modbusConfigDialogDlg.cpp
+Generating Code...
 Linking...
 Creating command line "bscmake.exe /nologo /o"Debug/modbusConfigDialog.bsc"  .\Debug\StdAfx.sbr .\Debug\c5db.sbr .\Debug\modbusConfigDialog.sbr .\Debug\modbusConfigDialogDlg.sbr"
 Creating browse info file...
