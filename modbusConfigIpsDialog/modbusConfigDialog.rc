@@ -1,0 +1,314 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#pragma code_page(936)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\modbusConfigDialog.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""l.chs\\afxres.rc""          // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\modbusConfigDialog.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MODBUSCONFIGDIALOG_DIALOG DIALOGEX 0, 0, 824, 445
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "modbusConfigDialog"
+FONT 9, "宋体"
+BEGIN
+    PUSHBUTTON      "添加",IDC_BUTTON_ADDGROUP,165,405,21,14
+    LISTBOX         IDC_LIST_GROUP,167,48,113,310,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "地址",IDC_STATIC,319,61,17,8
+    LTEXT           "数据数高低位",IDC_STATIC,319,113,49,8
+    LTEXT           "数据长度",IDC_STATIC,319,80,33,8
+    LTEXT           "数据数",IDC_STATIC,462,397,25,8
+    LTEXT           "检验",IDC_STATIC,321,380,17,8
+    LTEXT           "方法",IDC_STATIC,319,149,17,8
+    COMBOBOX        IDC_COMBO_ADDR,373,59,48,59,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_COMBO_HORL,375,110,45,53,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_DATALEN,373,78,48,64,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_DATANUM,488,397,25,12,ES_CENTER | ES_READONLY | 
+                    NOT WS_BORDER
+    COMBOBOX        IDC_COMBO_CRC,373,378,48,56,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_METHOD,373,147,48,129,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "个",IDC_STATIC,515,397,9,8
+    CONTROL         "List3",IDC_LIST_ATTR,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_TABSTOP,460,46,
+                    346,334
+    EDITTEXT        IDC_EDIT_TMP,653,409,40,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_LIST_TYPE,13,48,104,306,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "添加",IDC_BUTTON_ADDTYPE,13,411,22,14,WS_DISABLED
+    GROUPBOX        "规约",IDC_STATIC,6,7,128,431
+    GROUPBOX        "组",IDC_STATIC,313,43,116,256
+    PUSHBUTTON      "打开",IDC_BUTTON_OPEN,43,21,40,14
+    LTEXT           "规约号:",IDC_STATIC,14,368,29,8
+    EDITTEXT        IDC_EDIT_TYPEDESC,14,390,103,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "更改名称",IDC_BUTTON_CHANGETYPEDESC,44,411,37,14
+    EDITTEXT        IDC_EDIT_GROUPDESC,164,378,115,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "更改名称",IDC_BUTTON_CHANGEGROUPDESC,203,405,35,14
+    LTEXT           "0\n填入系统第二个数",IDC_STATIC_TYPEINDEX,443,21,8,8,
+                    NOT WS_VISIBLE
+    PUSHBUTTON      "新建",IDC_BUTTON_NEWDB,7,31,42,14,NOT WS_VISIBLE
+    PUSHBUTTON      "保存此规约",IDC_BUTTON_SAVECONFIGTODB,334,20,50,14
+    PUSHBUTTON      "删除",IDC_BUTTON_DELETETYPE,89,412,26,14,WS_DISABLED
+    PUSHBUTTON      "删除",IDC_BUTTON_DELETEGROUP,250,405,23,14
+    PUSHBUTTON      "+",IDC_BUTTON_ADDLISTCTRL,537,393,15,14
+    PUSHBUTTON      "-",IDC_BUTTON_DELETELISTCTRL,567,393,15,14
+    CONTROL         "遥测",IDC_RADIO_YC,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,179,22,32,10
+    CONTROL         "遥信",IDC_RADIO_YX,"Button",BS_AUTORADIOBUTTON,225,22,
+                    32,10
+    CONTROL         "电度",IDC_RADIO_DD,"Button",BS_AUTORADIOBUTTON,268,22,
+                    32,10
+    GROUPBOX        "",IDC_STATIC,168,13,637,25
+    LTEXT           "地址高低位",IDC_STATIC,320,356,41,8
+    COMBOBOX        IDC_COMBO_ADDRHORL,373,354,48,51,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "规约",IDC_STATIC,313,307,115,120
+    LTEXT           "请求数量",IDC_STATIC,320,214,33,8
+    EDITTEXT        IDC_EDIT_REQNUM,374,211,46,14,ES_AUTOHSCROLL
+    LTEXT           "返回数据数字节数",IDC_STATIC,319,169,65,8
+    EDITTEXT        IDC_EDIT_CBDATALENBIT,388,167,31,14,ES_AUTOHSCROLL
+    GROUPBOX        "",IDC_STATIC,151,7,668,431
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDVERT,316,21,1,14
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,318,136,106,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,317,98,107,1
+    EDITTEXT        IDC_EDIT_BIGID,48,366,69,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "返回数据高低位",IDC_STATIC,319,192,57,8
+    COMBOBOX        IDC_COMBO_CBDATAHORL,379,190,41,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,318,233,106,1
+    CONTROL         "有无效值",IDC_CHECK_HASNAN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,337,243,48,10
+    LTEXT           "无效值",IDC_STATIC,330,261,25,8
+    LTEXT           "返回值",IDC_STATIC,329,280,25,8
+    EDITTEXT        IDC_EDIT_NANKEY,372,259,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_NANVALUE,371,278,40,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "*",IDC_BUTTON_METHOD_EXPLAIN,341,148,11,10
+    PUSHBUTTON      "c5db",IDC_BUTTON_TESTC5DB,465,19,50,14,NOT WS_VISIBLE
+    CONTROL         "使用",IDC_CHECK_BIGUSED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,337,332,32,10
+    LTEXT           "备注",IDC_STATIC,321,404,17,8
+    EDITTEXT        IDC_EDIT_REMARK,370,403,49,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Button1",IDOK,534,21,50,14,NOT WS_VISIBLE | NOT 
+                    WS_TABSTOP
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404B0"
+        BEGIN
+            VALUE "CompanyName", "\0"
+            VALUE "FileDescription", "modbusConfigDialog Microsoft 基础类应用程序\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "modbusConfigDialog\0"
+            VALUE "LegalCopyright", "版权所有 (C) 2017\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "modbusConfigDialog.EXE\0"
+            VALUE "ProductName", "modbusConfigDialog 应用程序\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_MODBUSCONFIGDIALOG_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 819
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 438
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_MODBUSCONFIGDIALOG_DIALOG DLGINIT
+BEGIN
+    IDC_COMBO_ADDR, 0x403, 2, 0
+0x0030, 
+    IDC_COMBO_ADDR, 0x403, 2, 0
+0x0031, 
+    IDC_COMBO_ADDR, 0x403, 2, 0
+0x0032, 
+    IDC_COMBO_ADDR, 0x403, 2, 0
+0x0033, 
+    IDC_COMBO_ADDR, 0x403, 2, 0
+0x0034, 
+    IDC_COMBO_ADDR, 0x403, 2, 0
+0x0035, 
+    IDC_COMBO_HORL, 0x403, 5, 0
+0xdfb8, 0xb0c7, "\000" 
+    IDC_COMBO_HORL, 0x403, 5, 0
+0xcdb5, 0xb0c7, "\000" 
+    IDC_COMBO_DATALEN, 0x403, 6, 0
+0xd732, 0xbdd6, 0x00da, 
+    IDC_COMBO_DATALEN, 0x403, 6, 0
+0xd734, 0xbdd6, 0x00da, 
+    IDC_COMBO_DATALEN, 0x403, 6, 0
+0xd738, 0xbdd6, 0x00da, 
+    IDC_COMBO_CRC, 0x403, 10, 0
+0x5243, 0x3143, 0xb836, 0xc7df, 0x00b0, 
+    IDC_COMBO_CRC, 0x403, 10, 0
+0x5243, 0x3143, 0xb536, 0xc7cd, 0x00b0, 
+    IDC_COMBO_CRC, 0x403, 9, 0
+0x5243, 0x3843, 0xdfb8, 0xb0c7, "\000" 
+    IDC_COMBO_CRC, 0x403, 9, 0
+0x5243, 0x3843, 0xcdb5, 0xb0c7, "\000" 
+    IDC_COMBO_METHOD, 0x403, 7, 0
+0xb4b0, 0xd6d7, 0xdabd, "\000" 
+    IDC_COMBO_METHOD, 0x403, 5, 0
+0xb4b0, 0xbbce, "\000" 
+    IDC_COMBO_METHOD, 0x403, 5, 0
+0xc7b7, 0xbab8, "\000" 
+    IDC_COMBO_METHOD, 0x403, 5, 0
+0xfbd5, 0xfdca, "\000" 
+    IDC_COMBO_METHOD, 0x403, 7, 0
+0xa1b8, 0xe3b5, 0xfdca, "\000" 
+    IDC_COMBO_ADDRHORL, 0x403, 5, 0
+0xdfb8, 0xb0c7, "\000" 
+    IDC_COMBO_ADDRHORL, 0x403, 5, 0
+0xcdb5, 0xb0c7, "\000" 
+    IDC_COMBO_CBDATAHORL, 0x403, 5, 0
+0xdfb8, 0xb0c7, "\000" 
+    IDC_COMBO_CBDATAHORL, 0x403, 5, 0
+0xcdb5, 0xb0c7, "\000" 
+    0
+END
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE 4, 2
+#pragma code_page(936)
+#endif //_WIN32
+#include "res\modbusConfigDialog.rc2"  // non-Microsoft Visual C++ edited resources
+#include "l.chs\afxres.rc"          // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
