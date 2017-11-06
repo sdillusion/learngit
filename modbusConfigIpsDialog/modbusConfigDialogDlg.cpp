@@ -97,9 +97,9 @@ CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	
 	m_group_sel = -1;
 	m_type_sel = -1;
-	m_c5db = C5DB("127.0.0.1","Qwertyuiop1");
+	//m_c5db = C5DB("127.0.0.1","Qwertyuiop1");
 	//m_c5db = C5DB("192.168.1.30","Wontex@1");
-	//m_c5db = C5DB("111.231.135.99","wontex@1");
+	m_c5db = C5DB("111.231.135.99","wontex@1");
 
 }
 
