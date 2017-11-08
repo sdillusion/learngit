@@ -750,6 +750,13 @@ void CModbusConfigDialogDlg::OnSelchangeListType()
 	m_combo_addrhorl_val = bigstr.addrhorl == 'h' ? 0 : 1;
 	m_check_bigused_val = bigstr.used ? true : false;
 	//
+	getBigTypeFromC5DBByBig(CString(bigstr.type));
+	m_combo_bigtype.ResetContent();
+	int len = vBigtype.size();
+	for(i = 0; i < len; i++){
+		m_combo_bigtype.AddString(vBigtype.at(i).desc.GetBuffer(0));
+	}
+
 	m_combo_bigtype_val = FindIndexInBigtypeVector(vBigtype, CString(bigstr.type));
 	if(m_combo_bigtype_val >= 0){
 		m_combo_company_val = FindIndexInCompanyVector(vCompany, vBigtype.at(m_combo_bigtype_val).companyid);
@@ -875,10 +882,10 @@ void CModbusConfigDialogDlg::saveConfig(){
 		MessageBox("请选择规约！"); 
 		return;
 	}
-	if(m_list_group.GetCurSel() < 0){
-		MessageBox("请选择组！"); 
-		return;
-	}
+	//if(m_list_group.GetCurSel() < 0){
+	//	MessageBox("请选择组！"); 
+	//	return;
+	//}
 	UpdateData(TRUE);
 
 	for(int i = 0; i < m_edit_datanum_val; i++){
@@ -893,13 +900,16 @@ void CModbusConfigDialogDlg::saveConfig(){
 	m_list_attr.SortItems(listCtrlCompareProc,(DWORD)&m_list_attr);
 	//saveCommonConfig();
 	saveBigConfig();
-	if(m_state == 0){
-		saveYcConfig();
-	}else if(m_state == 1){
-		saveYxConfig();
-	}else if(m_state == 2){
-		saveDdConfig();
+	if(m_list_group.GetCurSel() >= 0){
+		if(m_state == 0){
+			saveYcConfig();
+		}else if(m_state == 1){
+			saveYxConfig();
+		}else if(m_state == 2){
+			saveDdConfig();
+		}
 	}
+	
 }
 
 
@@ -2487,7 +2497,7 @@ void CModbusConfigDialogDlg::getMethodFromFile(){
 }
 
 void CModbusConfigDialogDlg::getCompanyFromC5DB(){
-	CString sqlStr = "select F1101_CODE,F1101_DESC from TB1101_COMPANY";
+	CString sqlStr = "select RTRIM(F1101_CODE) as F1101_CODE ,RTRIM(F1101_DESC) as F1101_DESC from TB1101_COMPANY";
 	_RecordsetPtr m_pRecordset;
 	if(m_c5db.querySQL(sqlStr, m_pRecordset)){
 		while(!m_pRecordset->GetadoEOF()){
@@ -2507,8 +2517,20 @@ void CModbusConfigDialogDlg::getCompanyFromC5DB(){
 	}
 }
 
-void CModbusConfigDialogDlg::getBigTypeFromC5DB(CString companyid){
-	CString sqlStr = "select F1102_CODE,F1102_DESC from TB1102_PROTOCOLTYPE where F1101_CODE = '" + companyid + "'";
+void CModbusConfigDialogDlg::getBigTypeFromC5DBByCompany(CString companyid){
+	CString sqlStr = "select RTRIM(F1102_CODE) as F1102_CODE,RTRIM(F1102_DESC) as F1102_DESC,RTRIM(F1101_CODE) as F1101_CODE from TB1102_PROTOCOLTYPE";
+	if(companyid.GetLength()){
+		sqlStr = "select RTRIM(F1102_CODE) as F1102_CODE,RTRIM(F1102_DESC) as F1102_DESC,RTRIM(F1101_CODE) as F1101_CODE from TB1102_PROTOCOLTYPE where F1101_CODE = '" + companyid + "'";
+	}
+	getBigTypeFromC5DBBySQL(sqlStr);
+}
+
+void CModbusConfigDialogDlg::getBigTypeFromC5DBByBig(CString bigid){
+	CString sqlStr = " select RTRIM(F1102_CODE) as F1102_CODE,RTRIM(F1102_DESC) as F1102_DESC,RTRIM(F1101_CODE) as F1101_CODE from TB1102_PROTOCOLTYPE where F1101_CODE = (select F1101_CODE from TB1102_PROTOCOLTYPE where F1102_CODE = '" + bigid + "')";
+	getBigTypeFromC5DBBySQL(sqlStr);
+}
+
+void CModbusConfigDialogDlg::getBigTypeFromC5DBBySQL(CString sqlStr){
 	_RecordsetPtr m_pRecordset;
 	if(m_c5db.querySQL(sqlStr, m_pRecordset)){
 		vBigtype.clear();
@@ -2519,7 +2541,8 @@ void CModbusConfigDialogDlg::getBigTypeFromC5DB(CString companyid){
 			bigtypestr.desc = (char *)_bstr_t(varName);
 			varName = m_pRecordset->GetCollect ("F1102_CODE");
 			bigtypestr.id =  (char *)_bstr_t(varName);
-			bigtypestr.companyid = companyid;
+			varName = m_pRecordset->GetCollect ("F1101_CODE");
+			bigtypestr.companyid =  (char *)_bstr_t(varName);
 			vBigtype.push_back(bigtypestr);
 
 			m_pRecordset->MoveNext();
@@ -2551,7 +2574,7 @@ int FindIndexInCompanyVector(vector<COMPANYSTRUCT> v, CString id){
 	int size = v.size();
 	while(size>0){
 		size--;
-		if(id == v.at(size).id){
+		if(id.Compare(v.at(size).id) == 0){
 			return size;
 		}
 	}
@@ -2562,7 +2585,8 @@ int FindIndexInBigtypeVector(vector<BIGTYPESTRUCT> v, CString id){
 	int size = v.size();
 	while(size>0){
 		size--;
-		if(id == v.at(size).id){
+		BIGTYPESTRUCT bigstr = v.at(size);
+		if(id.Compare(bigstr.id) == 0){
 			return size;
 		}
 	}
@@ -2927,8 +2951,8 @@ void CModbusConfigDialogDlg::insertDataBigToC5DB(bigstruct bigstr, C5DB c5db){
 	//strSQL.Format("INSERT INTO big (id,describe,addrhorl,gcheckcrc,version,used,remark) VALUES ('%s','%s','%c',%d,%d,%d,'%s')",bigstr.id,bigstr.desc,
 	//	 bigstr.addrhorl, bigstr.checkcrc, bigstr.version, bigstr.used, bigstr.remark);
 	//CString strSQL = "insert into big values (id varchar(50), describe varchar(50), sort int PRIMARY KEY IDENTITY(1,1), addrhorl char, gcheckcrc int, version int)";
-	strSQL.Format("INSERT INTO TB2001_PROTOCOL (F2001_CODE,F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,F2001_REMARK,F1102_CODE) VALUES ('%s','%s','%c',%d,%d,%d,'%s','%s')",bigstr.id,bigstr.desc,
-		 bigstr.addrhorl, bigstr.checkcrc, bigstr.version, bigstr.used, bigstr.remark, bigstr.type);
+	strSQL.Format("INSERT INTO TB2001_PROTOCOL (F2001_CODE,F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,F2001_REMARK,F1102_CODE,F2001_SORT) VALUES ('%s','%s','%c',%d,%d,%d,'%s','%s',%d)",bigstr.id,bigstr.desc,
+		 bigstr.addrhorl, bigstr.checkcrc, bigstr.version, bigstr.used, bigstr.remark, bigstr.type,atoi(bigstr.id));
 	if(!c5db.executeSQL(strSQL))
 	{
 		m_errorNum++;
@@ -3018,7 +3042,7 @@ bool CModbusConfigDialogDlg::C5DBycGroupQuery(char* bigid, C5DB c5db){
 	char* ycGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2002_DESC) as F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL";
 
 	CString sqlStr;
-	sqlStr.Format("select %s from TB2002_YCGROUP where F2001_CODE = '%s'", ycGroupHeadName, id);
+	sqlStr.Format("select %s from TB2002_YCGROUP where F2001_CODE = '%s' order by CONVERT(int, F2002_CODE)", ycGroupHeadName, id);
 	_RecordsetPtr m_pRecordset;
 	if(c5db.querySQL(sqlStr, m_pRecordset)){
 		while(!m_pRecordset->GetadoEOF()){
@@ -3085,7 +3109,7 @@ bool CModbusConfigDialogDlg::C5DByxGroupQuery(char* bigid, C5DB c5db){
 
 	gYxType.yxseclen = 0;
 	CString sqlStr;
-	sqlStr.Format("select %s from TB2004_YXGROUP where F2001_CODE = '%s'", yxgroupHeadName, id);
+	sqlStr.Format("select %s from TB2004_YXGROUP where F2001_CODE = '%s' order by CONVERT(int, F2004_CODE)", yxgroupHeadName, id);
 	_RecordsetPtr m_pRecordset;
 	if(c5db.querySQL(sqlStr, m_pRecordset)){
 		while(!m_pRecordset->GetadoEOF()){
@@ -3129,7 +3153,7 @@ bool CModbusConfigDialogDlg::C5DBddGroupQuery(char* bigid, C5DB c5db){
 	CString id = bigid;
 	char * ddGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2006_DESC) as F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL";
 	CString sqlStr;
-	sqlStr.Format("select %s from TB2006_DDGROUP where F2001_CODE = '%s'",ddGroupHeadName, id);
+	sqlStr.Format("select %s from TB2006_DDGROUP where F2001_CODE = '%s' order by CONVERT(int, F2006_CODE)",ddGroupHeadName, id);
 	_RecordsetPtr m_pRecordset;
 	if(c5db.querySQL(sqlStr, m_pRecordset)){
 		while(!m_pRecordset->GetadoEOF()){
@@ -3177,7 +3201,7 @@ bool CModbusConfigDialogDlg::C5DBycQuery(char* bigid, char* groupid, int ycssind
 
 	//gYcType.ycseclen = 0;
 	CString sqlStr;
-	sqlStr.Format("select %s from TB2003_YCPOINT where F2001_CODE = '%s' and F2002_CODE = '%s'", ycHeadName, id1, id2);
+	sqlStr.Format("select %s from TB2003_YCPOINT where F2001_CODE = '%s' and F2002_CODE = '%s' order by CONVERT(int, F2003_CODE)", ycHeadName, id1, id2);
 	_RecordsetPtr m_pRecordset;
 	if(c5db.querySQL(sqlStr, m_pRecordset)){
 		while(!m_pRecordset->GetadoEOF()){
@@ -3219,7 +3243,7 @@ bool CModbusConfigDialogDlg::C5DByxQuery(char* bigid, char* groupid, int yxssind
 
 	//gYcType.ycseclen = 0;
 	CString sqlStr;
-	sqlStr.Format("select %s from TB2005_YXPOINT where F2001_CODE = '%s' and F2004_CODE = '%s'", yxHeadName, id1, id2);
+	sqlStr.Format("select %s from TB2005_YXPOINT where F2001_CODE = '%s' and F2004_CODE = '%s' order by CONVERT(int, F2005_CODE)", yxHeadName, id1, id2);
 	_RecordsetPtr m_pRecordset;
 	if(c5db.querySQL(sqlStr, m_pRecordset)){
 		while(!m_pRecordset->GetadoEOF()){
@@ -3255,7 +3279,7 @@ bool CModbusConfigDialogDlg::C5DBddQuery(char* bigid, char* groupid, int ddssind
 	char * ddHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2007_CODE) as F2007_CODE,RTRIM(F2007_DESC) as F2007_DESC,F2007_COE,F2007_USED,F2007_POINTNO";
 
 	CString sqlStr;
-	sqlStr.Format("select %s from TB2007_DDPOINT where F2001_CODE = '%s' and F2006_CODE = '%s'", ddHeadName, id1, id2);
+	sqlStr.Format("select %s from TB2007_DDPOINT where F2001_CODE = '%s' and F2006_CODE = '%s' order by CONVERT(int, F2007_CODE)", ddHeadName, id1, id2);
 	_RecordsetPtr m_pRecordset;
 	if(c5db.querySQL(sqlStr, m_pRecordset)){
 		while(!m_pRecordset->GetadoEOF()){
@@ -3415,7 +3439,7 @@ void CModbusConfigDialogDlg::OnSelchangeComboCompany()
 	gIsChanged = true;
 	UpdateData(TRUE);
 
-	getBigTypeFromC5DB(vCompany.at(m_combo_company_val).id);
+	getBigTypeFromC5DBByCompany(vCompany.at(m_combo_company_val).id);
 
 	m_combo_bigtype.ResetContent();
 	int len = vBigtype.size();

@@ -406,7 +406,9 @@ public:
 
 	void getMethodFromFile();
 	void getCompanyFromC5DB();
-	void getBigTypeFromC5DB(CString companyid);
+	void getBigTypeFromC5DBBySQL(CString sqlStr);//通过SQL获取规约
+	void getBigTypeFromC5DBByCompany(CString companyid);
+	void getBigTypeFromC5DBByBig(CString bigid);//获取与此规约id厂家相同的规约
 	void int2str(const int &int_temp,std::string &string_temp);
 	
 // Implementation
