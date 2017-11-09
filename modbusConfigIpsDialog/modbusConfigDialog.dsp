@@ -104,6 +104,10 @@ SOURCE=.\c5db.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CompanyDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\modbusConfigDialog.cpp
 # End Source File
 # Begin Source File
@@ -126,6 +130,10 @@ SOURCE=.\StdAfx.cpp
 # Begin Source File
 
 SOURCE=.\c5db.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CompanyDialog.h
 # End Source File
 # Begin Source File
 

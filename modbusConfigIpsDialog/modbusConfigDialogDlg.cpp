@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "modbusConfigDialog.h"
 #include "modbusConfigDialogDlg.h"
+#include "CompanyDialog.h"
 #include "c5db.h"
 #include "sqlite3.h"
 //#include "libdb.h"
@@ -67,6 +68,8 @@ const int YXNUMLIMITE = 17;
 const int DDNUMLIMITE = 20;
 //int gSys = -1;
 
+C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
+
 CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CModbusConfigDialogDlg::IDD, pParent)
 {
@@ -99,7 +102,7 @@ CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	m_type_sel = -1;
 	//m_c5db = C5DB("127.0.0.1","Qwertyuiop1");
 	//m_c5db = C5DB("192.168.1.30","Wontex@1");
-	m_c5db = C5DB("111.231.135.99","wontex@1");
+	//m_c5db = C5DB("111.231.135.99","wontex@1");
 
 }
 
@@ -186,6 +189,7 @@ BEGIN_MESSAGE_MAP(CModbusConfigDialogDlg, CDialog)
 	ON_EN_CHANGE(IDC_EDIT_REMARK, OnChangeEditRemark)
 	ON_CBN_SELCHANGE(IDC_COMBO_COMPANY, OnSelchangeComboCompany)
 	ON_CBN_SELCHANGE(IDC_COMBO_BIGTYPE, OnSelchangeComboBigtype)
+	ON_BN_CLICKED(IDC_BUTTON_ADDCOMPANY, OnButtonAddcompany)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -3454,4 +3458,19 @@ void CModbusConfigDialogDlg::OnSelchangeComboBigtype()
 	gIsChanged = true;
 	UpdateData(TRUE);
 	saveBigConfig();
+}
+
+void CModbusConfigDialogDlg::OnButtonAddcompany() 
+{
+	// TODO: Add your control notification handler code here
+	if(m_list_type.GetCurSel()<0){
+		MessageBox("请先选择规约");
+		return;
+	}
+	CCompanyDialog companyDialog;
+	if(companyDialog.DoModal()==IDOK){
+		getCompanyFromC5DB();
+		C5DBbigQuery(m_c5db);
+		refreshTypeUI();
+	}
 }

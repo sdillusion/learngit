@@ -457,6 +457,7 @@ protected:
 	virtual void OnOK();
 	afx_msg void OnSelchangeComboCompany();
 	afx_msg void OnSelchangeComboBigtype();
+	afx_msg void OnButtonAddcompany();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
@@ -483,10 +484,10 @@ public:
 
 	int m_typeNum;
 
-	C5DB m_c5db;
+	//C5DB m_c5db;
 	int m_errorNum;
 };
-
+//C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
 static int CALLBACK listCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 int CopyFile(char *SourceFile,char *NewFile);
 int FindIndexInMethodVector(vector<METHODSTRUCT> v, int no);

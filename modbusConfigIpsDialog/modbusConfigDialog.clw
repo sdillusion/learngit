@@ -2,41 +2,72 @@
 
 [General Info]
 Version=1
-LastClass=CModbusConfigDialogDlg
+LastClass=CCompanyDialog
 LastTemplate=CDialog
 NewFileInclude1=#include "stdafx.h"
-NewFileInclude2=#include "modbusConfigDialog.h"
+NewFileInclude2=#include "modbusconfigdialog.h"
+LastPage=0
 
-ClassCount=2
-Class1=CModbusConfigDialogApp
-Class2=CModbusConfigDialogDlg
+ClassCount=3
+Class1=CCompanyDialog
+Class2=CModbusConfigDialogApp
+Class3=CModbusConfigDialogDlg
 
-ResourceCount=3
-Resource2=IDR_MAINFRAME
-Resource3=IDD_MODBUSCONFIGDIALOG_DIALOG
+ResourceCount=2
+Resource1=IDD_MODBUSCONFIGDIALOG_DIALOG
+Resource2=IDD_COMPANYDIALOG
+
+[CLS:CCompanyDialog]
+Type=0
+BaseClass=CDialog
+HeaderFile=CompanyDialog.h
+ImplementationFile=CompanyDialog.cpp
+LastObject=IDC_BUTTON_COMPANYUPDATE2
+Filter=D
+VirtualFilter=dWC
 
 [CLS:CModbusConfigDialogApp]
 Type=0
+BaseClass=CWinApp
 HeaderFile=modbusConfigDialog.h
 ImplementationFile=modbusConfigDialog.cpp
-Filter=N
-LastObject=CModbusConfigDialogApp
 
 [CLS:CModbusConfigDialogDlg]
 Type=0
+BaseClass=CDialog
 HeaderFile=modbusConfigDialogDlg.h
 ImplementationFile=modbusConfigDialogDlg.cpp
+LastObject=CModbusConfigDialogDlg
 Filter=D
-LastObject=IDC_COMBO_BIGTYPE
-BaseClass=CDialog
 VirtualFilter=dWC
 
-
+[DLG:IDD_COMPANYDIALOG]
+Type=1
+Class=CCompanyDialog
+ControlCount=18
+Control1=IDOK,button,1342242817
+Control2=IDCANCEL,button,1073807360
+Control3=IDC_LIST_COMPANY,listbox,1352728833
+Control4=IDC_LIST_BIGTYPE,listbox,1352728835
+Control5=IDC_EDIT_COMPANYDESC,edit,1350631552
+Control6=IDC_EDIT_COMPANYREMARK,edit,1350631552
+Control7=IDC_EDIT_BIGTYPEDESC,edit,1350631552
+Control8=IDC_EDIT_BIGTYPEREMARK,edit,1350631552
+Control9=IDC_BUTTON_COMPANYADD,button,1342242816
+Control10=IDC_BUTTON_COMPANYUPDATE,button,1342242816
+Control11=IDC_BUTTON_BIGTYPEADD,button,1342242816
+Control12=IDC_BUTTON_COMPANYUPDATE2,button,1342242816
+Control13=IDC_STATIC,static,1342308352
+Control14=IDC_STATIC,static,1342308352
+Control15=IDC_STATIC,static,1342308352
+Control16=IDC_STATIC,static,1342308352
+Control17=IDC_STATIC,static,1342308352
+Control18=IDC_STATIC,static,1342308352
 
 [DLG:IDD_MODBUSCONFIGDIALOG_DIALOG]
 Type=1
 Class=CModbusConfigDialogDlg
-ControlCount=68
+ControlCount=69
 Control1=IDC_BUTTON_ADDGROUP,button,1342242816
 Control2=IDC_LIST_GROUP,listbox,1352728833
 Control3=IDC_STATIC,static,1342308352
@@ -105,4 +136,5 @@ Control65=IDC_STATIC,static,1342308352
 Control66=IDC_STATIC,static,1342308352
 Control67=IDC_COMBO_COMPANY,combobox,1344340227
 Control68=IDC_COMBO_BIGTYPE,combobox,1344340227
+Control69=IDC_BUTTON_ADDCOMPANY,button,1342242816
 

@@ -21,9 +21,10 @@ public:
 	void commitTrans();
 	void rollbackTrans();
 
+	_ConnectionPtr  gsqlSp;
 private:
 	CString m_ip;
 	CString m_password;
-	_ConnectionPtr  gsqlSp;
+	
 };
 #endif
