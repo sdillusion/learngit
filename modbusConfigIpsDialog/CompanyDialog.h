@@ -67,21 +67,27 @@ protected:
 	afx_msg void OnSelchangeListCompany();
 	afx_msg void OnSelchangeListBigtype();
 	afx_msg void OnButtonCompanyupdate();
-	afx_msg void OnButtonCompanyupdate2();
+	afx_msg void OnButtonBigtypeupdate();
+	afx_msg void OnButtonCompanydelete();
+	afx_msg void OnButtonBigtypedelete();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:
 	bool getCompanyFromC5DB();
 	bool getBigtypeFromC5DB(CString companyid);
+	bool getBigtypesTotalFromC5DB();
 
 	void refreshCompanyList();
 	void refreshBigtypeList();
 
+	void deleteCompanyInC5DB(int index);
+	void deleteBigtypeInC5DB(int index);
+
 private:
 	vector<COMPANYSTR> vCompany;
 	vector<BIGTYPESTR> vBigtype;
-
-
+	vector<BIGTYPESTR> vBigtypeTotal;
+	int m_errorNum;
 };
 
 //{{AFX_INSERT_LOCATION}}

@@ -77,7 +77,9 @@
 #define IDC_BUTTON_COMPANYADD           1100
 #define IDC_BUTTON_COMPANYUPDATE        1101
 #define IDC_BUTTON_BIGTYPEADD           1102
-#define IDC_BUTTON_COMPANYUPDATE2       1103
+#define IDC_BUTTON_BIGTYPEUPDATE        1103
+#define IDC_BUTTON_COMPANYDELETE        1105
+#define IDC_BUTTON_BIGTYPEDELETE        1106
 
 // Next default values for new objects
 // 
@@ -85,7 +87,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1105
+#define _APS_NEXT_CONTROL_VALUE         1106
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

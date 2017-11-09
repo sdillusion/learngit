@@ -68,7 +68,10 @@ const int YXNUMLIMITE = 17;
 const int DDNUMLIMITE = 20;
 //int gSys = -1;
 
-C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
+//C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
+C5DB m_c5db = C5DB("127.0.0.1","Qwertyuiop1");
+//C5DB m_c5db = C5DB("192.168.1.30","Wontex@1");
+//C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
 
 CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CModbusConfigDialogDlg::IDD, pParent)
@@ -100,9 +103,7 @@ CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	
 	m_group_sel = -1;
 	m_type_sel = -1;
-	//m_c5db = C5DB("127.0.0.1","Qwertyuiop1");
-	//m_c5db = C5DB("192.168.1.30","Wontex@1");
-	//m_c5db = C5DB("111.231.135.99","wontex@1");
+	
 
 }
 
@@ -2501,9 +2502,10 @@ void CModbusConfigDialogDlg::getMethodFromFile(){
 }
 
 void CModbusConfigDialogDlg::getCompanyFromC5DB(){
-	CString sqlStr = "select RTRIM(F1101_CODE) as F1101_CODE ,RTRIM(F1101_DESC) as F1101_DESC from TB1101_COMPANY";
+	CString sqlStr = "select RTRIM(F1101_CODE) as F1101_CODE ,RTRIM(F1101_DESC) as F1101_DESC from TB1101_COMPANY order by CONVERT(int,F1101_CODE)";
 	_RecordsetPtr m_pRecordset;
 	if(m_c5db.querySQL(sqlStr, m_pRecordset)){
+		vCompany.clear();
 		while(!m_pRecordset->GetadoEOF()){
 			_variant_t varName;
 			COMPANYSTRUCT companystr;
@@ -2522,7 +2524,7 @@ void CModbusConfigDialogDlg::getCompanyFromC5DB(){
 }
 
 void CModbusConfigDialogDlg::getBigTypeFromC5DBByCompany(CString companyid){
-	CString sqlStr = "select RTRIM(F1102_CODE) as F1102_CODE,RTRIM(F1102_DESC) as F1102_DESC,RTRIM(F1101_CODE) as F1101_CODE from TB1102_PROTOCOLTYPE";
+	CString sqlStr = "select RTRIM(F1102_CODE) as F1102_CODE,RTRIM(F1102_DESC) as F1102_DESC,RTRIM(F1101_CODE) as F1101_CODE from TB1102_PROTOCOLTYPE order by CONVERT(int,F1102_CODE)";
 	if(companyid.GetLength()){
 		sqlStr = "select RTRIM(F1102_CODE) as F1102_CODE,RTRIM(F1102_DESC) as F1102_DESC,RTRIM(F1101_CODE) as F1101_CODE from TB1102_PROTOCOLTYPE where F1101_CODE = '" + companyid + "'";
 	}
@@ -3357,7 +3359,7 @@ bool CModbusConfigDialogDlg::C5DBbigQuery(C5DB c5db){
 			varName = m_pRecordset->GetCollect ("F2001_USED");
 			bigstr.used = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : 0;
 			varName = m_pRecordset->GetCollect ("F2001_REMARK");
-			strcpy(bigstr.remark, (char *)_bstr_t(varName));
+			strcpy(bigstr.remark, varName.vt!=VT_NULL ? (char *)_bstr_t(varName) : "");
 			varName = m_pRecordset->GetCollect ("F1102_CODE");
 			strcpy(bigstr.type, (char *)_bstr_t(varName));
 			vbig.push_back(bigstr);

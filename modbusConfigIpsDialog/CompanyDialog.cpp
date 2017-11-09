@@ -56,12 +56,31 @@ BEGIN_MESSAGE_MAP(CCompanyDialog, CDialog)
 	ON_LBN_SELCHANGE(IDC_LIST_COMPANY, OnSelchangeListCompany)
 	ON_LBN_SELCHANGE(IDC_LIST_BIGTYPE, OnSelchangeListBigtype)
 	ON_BN_CLICKED(IDC_BUTTON_COMPANYUPDATE, OnButtonCompanyupdate)
-	ON_BN_CLICKED(IDC_BUTTON_COMPANYUPDATE2, OnButtonCompanyupdate2)
+	ON_BN_CLICKED(IDC_BUTTON_BIGTYPEUPDATE, OnButtonBigtypeupdate)
+	ON_BN_CLICKED(IDC_BUTTON_COMPANYDELETE, OnButtonCompanydelete)
+	ON_BN_CLICKED(IDC_BUTTON_BIGTYPEDELETE, OnButtonBigtypedelete)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CCompanyDialog message handlers
+
+BOOL CCompanyDialog::OnInitDialog() 
+{
+	CDialog::OnInitDialog();
+	
+	// TODO: Add extra initialization here
+
+	m_list_company.SetHorizontalExtent(600);
+	m_list_bigtype.SetHorizontalExtent(600);
+
+	getCompanyFromC5DB();
+	getBigtypesTotalFromC5DB();
+	refreshCompanyList();
+	
+	return TRUE;  // return TRUE unless you set the focus to a control
+	              // EXCEPTION: OCX Property Pages should return FALSE
+}
 
 void CCompanyDialog::OnButtonCompanyadd() 
 {
@@ -96,12 +115,15 @@ void CCompanyDialog::OnButtonCompanyadd()
 	companyStr.id.Format("%d",id);
 	companyStr.desc = m_edit_companydesc_val;
 	companyStr.remark = m_edit_companyremark_val;
+	
 
 	CString sqlStr;
 	sqlStr.Format("insert into TB1101_COMPANY ([F1101_CODE],[F1101_DESC],[F1101_REMARK]) values ('%s','%s','%s');",
 		companyStr.id, companyStr.desc, companyStr.remark);
 	if(m_c5db.executeSQL(sqlStr)){
 		MessageBox("添加成功");
+		vCompany.push_back(companyStr);
+		refreshCompanyList();
 	}else{
 		MessageBox("添加失败");
 	}
@@ -124,13 +146,13 @@ void CCompanyDialog::OnButtonBigtypeadd()
 
 	BIGTYPESTR bigtypeStr;
 	int id = 0;
-	int len = vBigtype.size();
+	int len = vBigtypeTotal.size();
 	bool has;
 	while(id < len + 1){
 		has = false;
 		for(int i = 0; i < len; i++){
 			int tempid;
-			tempid = atoi(vBigtype.at(i).id);
+			tempid = atoi(vBigtypeTotal.at(i).id);
 			if(tempid == id){
 				has = true;
 				continue;
@@ -145,12 +167,16 @@ void CCompanyDialog::OnButtonBigtypeadd()
 	bigtypeStr.id.Format("%d",id);
 	bigtypeStr.desc = m_edit_bigtypedesc_val;
 	bigtypeStr.remark = m_edit_bigtyperemark_val;
+	
 
 	CString sqlStr;
 	sqlStr.Format("insert into TB1102_PROTOCOLTYPE ([F1101_CODE],[F1102_CODE],[F1102_DESC],[F1102_REMARK]) values ('%s','%s','%s','%s');",
 		vCompany.at(company_sel).id,bigtypeStr.id, bigtypeStr.desc, bigtypeStr.remark);
 	if(m_c5db.executeSQL(sqlStr)){
 		MessageBox("添加成功");
+		vBigtype.push_back(bigtypeStr);
+		vBigtypeTotal.push_back(bigtypeStr);
+		refreshBigtypeList();
 	}else{
 		MessageBox("添加失败");
 	}
@@ -165,6 +191,10 @@ void CCompanyDialog::OnButtonCompanyupdate()
 		return;
 	}
 	UpdateData(TRUE);
+		if(m_edit_companydesc_val.GetLength() == 0){
+		MessageBox("请填写描述");
+		return;
+	}
 
 	COMPANYSTR companyStr = vCompany.at(company_sel);
 	vCompany.at(company_sel).desc = m_edit_companydesc_val;
@@ -175,12 +205,13 @@ void CCompanyDialog::OnButtonCompanyupdate()
 		m_edit_companydesc_val, m_edit_companydesc_val, companyStr.id);
 	if(m_c5db.executeSQL(sqlStr)){
 		MessageBox("更新成功");
+		refreshCompanyList();
 	}else{
 		MessageBox("更新失败");
 	}
 }
 
-void CCompanyDialog::OnButtonCompanyupdate2() 
+void CCompanyDialog::OnButtonBigtypeupdate() 
 {
 	// TODO: Add your control notification handler code here
 	int company_sel = m_list_company.GetCurSel();
@@ -194,16 +225,21 @@ void CCompanyDialog::OnButtonCompanyupdate2()
 		return;
 	}
 	UpdateData(TRUE);
+	if(m_edit_bigtypedesc_val.GetLength() == 0){
+		MessageBox("请填写描述");
+		return;
+	}
 
-	BIGTYPESTR bigtypeStr = vBigtype.at(bigtype_sel);
+	//BIGTYPESTR bigtypeStr = vBigtype.at(bigtype_sel);
 	vBigtype.at(bigtype_sel).desc = m_edit_bigtypedesc_val;
 	vBigtype.at(bigtype_sel).remark = m_edit_bigtyperemark_val;
 
 	CString sqlStr;
 	sqlStr.Format("update TB1102_PROTOCOLTYPE set F1102_DESC= '%s',F1102_REMARK = '%s' where F1102_CODE = '%s';",
-		bigtypeStr.desc, bigtypeStr.remark, bigtypeStr.id);
+		vBigtype.at(bigtype_sel).desc, vBigtype.at(bigtype_sel).remark, vBigtype.at(bigtype_sel).id);
 	if(m_c5db.executeSQL(sqlStr)){
 		MessageBox("更新成功");
+		refreshBigtypeList();
 	}else{
 		MessageBox("更新失败");
 	}
@@ -215,6 +251,7 @@ bool CCompanyDialog::getCompanyFromC5DB(){
 	sqlStr.Format("select [F1101_CODE],[F1101_DESC],[F1101_REMARK] from TB1101_COMPANY  order by convert(int, F1101_CODE);");
 	_RecordsetPtr m_pRecordset;
 	if(m_c5db.querySQL(sqlStr, m_pRecordset)){
+		vCompany.clear();
 		while(!m_pRecordset->GetadoEOF()){
 			_variant_t varName;
 			COMPANYSTR companystr;
@@ -226,7 +263,7 @@ bool CCompanyDialog::getCompanyFromC5DB(){
 			companystr.desc = (char *)_bstr_t(varName);
 			companystr.desc.TrimRight();
 			varName = m_pRecordset->GetCollect ("F1101_REMARK");
-			companystr.remark = (char *)_bstr_t(varName);
+			companystr.remark = (varName.vt!=VT_NULL) ? (char *)_bstr_t(varName) : "";
 			companystr.remark.TrimRight();
 			
 			vCompany.push_back(companystr);
@@ -259,7 +296,7 @@ bool CCompanyDialog::getBigtypeFromC5DB(CString companyid){
 			bigtypestr.desc = (char *)_bstr_t(varName);
 			bigtypestr.desc.TrimRight();
 			varName = m_pRecordset->GetCollect ("F1102_REMARK");
-			bigtypestr.remark = (char *)_bstr_t(varName);
+			bigtypestr.remark = (varName.vt!=VT_NULL) ? (char *)_bstr_t(varName) : "";
 			bigtypestr.remark.TrimRight();
 			
 			vBigtype.push_back(bigtypestr);
@@ -272,21 +309,44 @@ bool CCompanyDialog::getBigtypeFromC5DB(CString companyid){
 	return false;
 }
 
-BOOL CCompanyDialog::OnInitDialog() 
-{
-	CDialog::OnInitDialog();
-	
-	// TODO: Add extra initialization here
+bool CCompanyDialog::getBigtypesTotalFromC5DB(){
+	CString sqlStr;
+	sqlStr.Format("select [F1101_CODE],[F1102_CODE],[F1102_DESC],[F1102_REMARK] from TB1102_PROTOCOLTYPE order by convert(int, F1102_CODE);");
+	_RecordsetPtr m_pRecordset;
+	vBigtypeTotal.clear();
+	if(m_c5db.querySQL(sqlStr, m_pRecordset)){
+		while(!m_pRecordset->GetadoEOF()){
+			_variant_t varName;
+			BIGTYPESTR bigtypestr;
 
-	getCompanyFromC5DB();
-	refreshCompanyList();
-	
-	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+			varName = m_pRecordset->GetCollect ("F1101_CODE");
+			bigtypestr.companyid = (char *)_bstr_t(varName);
+			bigtypestr.companyid.TrimRight();
+			varName = m_pRecordset->GetCollect ("F1102_CODE");
+			bigtypestr.id = (char *)_bstr_t(varName);
+			bigtypestr.id.TrimRight();
+			varName = m_pRecordset->GetCollect ("F1102_DESC");
+			bigtypestr.desc = (char *)_bstr_t(varName);
+			bigtypestr.desc.TrimRight();
+			varName = m_pRecordset->GetCollect ("F1102_REMARK");
+			bigtypestr.remark = (varName.vt!=VT_NULL) ? (char *)_bstr_t(varName) : "";
+			bigtypestr.remark.TrimRight();
+			
+			vBigtypeTotal.push_back(bigtypestr);
+			m_pRecordset->MoveNext();
+		}
+		m_pRecordset->Close();
+		m_pRecordset.Release();
+		return true;
+	}
+	return false;
 }
+
+
 
 void CCompanyDialog::refreshCompanyList(){
 	m_list_company.ResetContent();
+	m_list_bigtype.ResetContent();
 	int len = vCompany.size();
 	for(int i = 0; i < len; i++){
 		CString str;
@@ -330,3 +390,117 @@ void CCompanyDialog::OnSelchangeListBigtype()
 }
 
 
+void CCompanyDialog::deleteCompanyInC5DB(int index){
+	//int company_sel = m_list_company.GetCurSel();
+	//CString sqlStr;
+	//sqlStr.Format("update TB2001_PROTOCOL set F1102_CODE = '0' where F1102_CODE = (select F1102_CODE from TB1101_COMPANY where F1101_CODE = '%s');delete from TB1101_COMPANY where F1101_CODE = '%s';delete from TB1102_PROTOCOLTYPE where F1101_CODE = '%s';",
+	//	vCompany.at(index).id);
+	//if(m_c5db.executeSQL(sqlStr)){
+	//	MessageBox("删除成功");
+		//getCompanyFromC5DB();
+	//	vCompany.erase(index);
+	//	getBigtypesTotalFromC5DB();
+	//	refreshCompanyList();
+	//}else{
+	//	MessageBox("删除失败");
+	//}
+
+	CString sqlStr;
+	m_errorNum = 0;
+	m_c5db.beginTrans();
+	sqlStr.Format("update TB2001_PROTOCOL set F1102_CODE = '0' where F1102_CODE = (select F1102_CODE from TB1101_COMPANY where F1101_CODE = '%s');",
+		vCompany.at(index).id);
+	if(!m_c5db.executeSQL(sqlStr)){
+		m_errorNum++;
+	}
+	sqlStr.Format("delete from TB1101_COMPANY where F1101_CODE = '%s';",
+		vCompany.at(index).id);
+	if(!m_c5db.executeSQL(sqlStr)){
+		m_errorNum++;
+	}
+	sqlStr.Format("delete from TB1102_PROTOCOLTYPE where F1101_CODE = '%s';",
+		vCompany.at(index).id);
+	if(!m_c5db.executeSQL(sqlStr)){
+		m_errorNum++;
+	}
+	if(m_errorNum == 0){
+		m_c5db.commitTrans();
+		MessageBox("删除成功");
+		//getCompanyFromC5DB();
+		vCompany.erase(vCompany.begin()+index);
+		getBigtypesTotalFromC5DB();
+		refreshCompanyList();
+	}else{
+		m_c5db.rollbackTrans();
+		MessageBox("删除失败");
+	}
+
+}
+
+void CCompanyDialog::deleteBigtypeInC5DB(int index){
+	//int company_sel = m_list_company.GetCurSel();
+	//int bigtype_sel = m_list_bigtype.GetCurSel();
+	//CString sqlStr;
+	//sqlStr.Format("");
+	//if(m_c5db.executeSQL(sqlStr)){
+	//	MessageBox("删除成功");
+		//getCompanyFromC5DB();
+	//	vBigtype.erase(index);
+	//	getBigtypesTotalFromC5DB();
+	//	refreshBigtypeList();
+	//}else{
+	//	MessageBox("删除失败");
+	//}
+
+
+	CString sqlStr;
+	m_errorNum = 0;
+	m_c5db.beginTrans();
+	sqlStr.Format("update TB2001_PROTOCOL set F1102_CODE = '0' where F1102_CODE = '%s';",
+		vBigtype.at(index).id);
+	if(!m_c5db.executeSQL(sqlStr)){
+		m_errorNum++;
+	}
+	
+	sqlStr.Format("delete from TB1102_PROTOCOLTYPE where F1102_CODE = '%s';",
+		vBigtype.at(index).id);
+	if(!m_c5db.executeSQL(sqlStr)){
+		m_errorNum++;
+	}
+	if(m_errorNum == 0){
+		MessageBox("删除成功");
+		vBigtype.erase(vBigtype.begin()+index);
+		getBigtypesTotalFromC5DB();
+		refreshBigtypeList();
+	}else{
+		m_c5db.rollbackTrans();
+		MessageBox("删除失败");
+	}
+}
+
+void CCompanyDialog::OnButtonCompanydelete() 
+{
+	// TODO: Add your control notification handler code here
+	int company_sel = m_list_company.GetCurSel();
+	if(company_sel < 0){
+		MessageBox("请选择厂家！"); 
+		return;
+	}
+	deleteCompanyInC5DB(company_sel);
+}
+
+void CCompanyDialog::OnButtonBigtypedelete() 
+{
+	// TODO: Add your control notification handler code here
+	int company_sel = m_list_company.GetCurSel();
+	if(company_sel < 0){
+		MessageBox("请选择厂家！"); 
+		return;
+	}
+	int bigtype_sel = m_list_bigtype.GetCurSel();
+	if(bigtype_sel < 0){
+		MessageBox("请选择类型！"); 
+		return;
+	}
+	deleteBigtypeInC5DB(bigtype_sel);
+}
