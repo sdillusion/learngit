@@ -95,23 +95,26 @@ void CCompanyDialog::OnButtonCompanyadd()
 	COMPANYSTR companyStr;
 	int id = 0;
 	int len = vCompany.size();
-	bool has;
-	while(id < len + 1){
-		has = false;
-		for(int i = 0; i < len; i++){
-			int tempid;
-			tempid = atoi(vCompany.at(i).id);
-			if(tempid == id){
-				has = true;
-				continue;
-			}
-		}
-		if(!has){
-			break;
-		}
-		id++;
-	}
+	//bool has;
+	//while(id < len + 1){
+	//	has = false;
+	//	for(int i = 0; i < len; i++){
+	//		int tempid;
+	//		tempid = atoi(vCompany.at(i).id);
+	//		if(tempid == id){
+	//			has = true;
+	//			continue;
+	//		}
+	//	}
+	//	if(!has){
+	//		break;
+	//	}
+	//	id++;
+	//}
+
+	id = atoi(vCompany.at(len - 1).id) + 1;
 	
+
 	companyStr.id.Format("%d",id);
 	companyStr.desc = m_edit_companydesc_val;
 	companyStr.remark = m_edit_companyremark_val;
@@ -147,22 +150,24 @@ void CCompanyDialog::OnButtonBigtypeadd()
 	BIGTYPESTR bigtypeStr;
 	int id = 0;
 	int len = vBigtypeTotal.size();
-	bool has;
-	while(id < len + 1){
-		has = false;
-		for(int i = 0; i < len; i++){
-			int tempid;
-			tempid = atoi(vBigtypeTotal.at(i).id);
-			if(tempid == id){
-				has = true;
-				continue;
-			}
-		}
-		if(!has){
-			break;
-		}
-		id++;
-	}
+	//bool has;
+	//while(id < len + 1){
+	//	has = false;
+	//	for(int i = 0; i < len; i++){
+	//		int tempid;
+	//		tempid = atoi(vBigtypeTotal.at(i).id);
+	//		if(tempid == id){
+	//			has = true;
+	//			continue;
+	//		}
+	//	}
+	//	if(!has){
+	//		break;
+	//	}
+	//	id++;
+	//}
+
+	id = atoi(vBigtypeTotal.at(len - 1).id) + 1;
 	
 	bigtypeStr.id.Format("%d",id);
 	bigtypeStr.desc = m_edit_bigtypedesc_val;
@@ -486,7 +491,10 @@ void CCompanyDialog::OnButtonCompanydelete()
 		MessageBox("请选择厂家！"); 
 		return;
 	}
-	deleteCompanyInC5DB(company_sel);
+	int key = MessageBox("确定要删除此厂家及下属型号？","警告",MB_YESNO);
+	if(key == IDYES){
+		deleteCompanyInC5DB(company_sel);
+	}
 }
 
 void CCompanyDialog::OnButtonBigtypedelete() 
@@ -502,5 +510,8 @@ void CCompanyDialog::OnButtonBigtypedelete()
 		MessageBox("请选择类型！"); 
 		return;
 	}
-	deleteBigtypeInC5DB(bigtype_sel);
+	int key = MessageBox("确定要删除此类型？","警告",MB_YESNO);
+	if(key == IDYES){
+		deleteBigtypeInC5DB(bigtype_sel);
+	}
 }

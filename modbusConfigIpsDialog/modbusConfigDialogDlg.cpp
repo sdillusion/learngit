@@ -5,6 +5,7 @@
 #include "modbusConfigDialog.h"
 #include "modbusConfigDialogDlg.h"
 #include "CompanyDialog.h"
+#include "LogInDlg.h"
 #include "c5db.h"
 #include "sqlite3.h"
 //#include "libdb.h"
@@ -241,6 +242,17 @@ BOOL CModbusConfigDialogDlg::OnInitDialog()
 
 	//m_list_attr.SetItemText(2,2,"test");
 	m_radio_yc.SetCheck(1);
+
+	if(!m_c5db.openDB()){
+		MessageBox("打开MSSQL数据库时出错");
+		EndDialog(IDCANCEL);
+		return TRUE;
+	}
+
+	CLogInDlg loginDlg;
+	if(loginDlg.DoModal()!=IDOK){
+		EndDialog(IDCANCEL);
+	}
 	
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -2071,14 +2083,14 @@ void CModbusConfigDialogDlg::OnButtonOpen()
 		closeDB();
 	}
 */	
-	if(m_c5db.openDB()){
+	//if(m_c5db.openDB()){
 		getCompanyFromC5DB();
 		C5DBbigQuery(m_c5db);
 		refreshTypeUI();
 		//m_c5db.closeDB();
-	}else{
-		MessageBox("打开MSSQL数据库时出错");
-	}
+	//}else{
+	//	MessageBox("打开MSSQL数据库时出错");
+	//}
 	
 }
 

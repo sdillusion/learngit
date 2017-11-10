@@ -2,27 +2,36 @@
 
 [General Info]
 Version=1
-LastClass=CCompanyDialog
+LastClass=CLogInDlg
 LastTemplate=CDialog
 NewFileInclude1=#include "stdafx.h"
 NewFileInclude2=#include "modbusconfigdialog.h"
 LastPage=0
 
-ClassCount=3
+ClassCount=4
 Class1=CCompanyDialog
-Class2=CModbusConfigDialogApp
-Class3=CModbusConfigDialogDlg
+Class2=CLogInDlg
+Class3=CModbusConfigDialogApp
+Class4=CModbusConfigDialogDlg
 
-ResourceCount=2
+ResourceCount=3
 Resource1=IDD_MODBUSCONFIGDIALOG_DIALOG
 Resource2=IDD_COMPANYDIALOG
+Resource3=IDD_DIALOG_LOGIN
 
 [CLS:CCompanyDialog]
 Type=0
 BaseClass=CDialog
 HeaderFile=CompanyDialog.h
 ImplementationFile=CompanyDialog.cpp
-LastObject=IDC_BUTTON_BIGTYPEDELETE
+LastObject=CCompanyDialog
+
+[CLS:CLogInDlg]
+Type=0
+BaseClass=CDialog
+HeaderFile=LogInDlg.h
+ImplementationFile=LogInDlg.cpp
+LastObject=IDOK
 Filter=D
 VirtualFilter=dWC
 
@@ -38,8 +47,6 @@ BaseClass=CDialog
 HeaderFile=modbusConfigDialogDlg.h
 ImplementationFile=modbusConfigDialogDlg.cpp
 LastObject=CModbusConfigDialogDlg
-Filter=D
-VirtualFilter=dWC
 
 [DLG:IDD_COMPANYDIALOG]
 Type=1
@@ -65,6 +72,17 @@ Control17=IDC_STATIC,static,1342308352
 Control18=IDC_STATIC,static,1342308352
 Control19=IDC_BUTTON_COMPANYDELETE,button,1342242816
 Control20=IDC_BUTTON_BIGTYPEDELETE,button,1342242816
+
+[DLG:IDD_DIALOG_LOGIN]
+Type=1
+Class=CLogInDlg
+ControlCount=6
+Control1=IDOK,button,1342242817
+Control2=IDCANCEL,button,1342242816
+Control3=IDC_STATIC,static,1342308352
+Control4=IDC_STATIC,static,1342308352
+Control5=IDC_EDIT_USERNAME,edit,1350631552
+Control6=IDC_EDIT_USERPW,edit,1350631584
 
 [DLG:IDD_MODBUSCONFIGDIALOG_DIALOG]
 Type=1

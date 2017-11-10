@@ -108,6 +108,10 @@ SOURCE=.\CompanyDialog.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\LogInDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\modbusConfigDialog.cpp
 # End Source File
 # Begin Source File
@@ -134,6 +138,10 @@ SOURCE=.\c5db.h
 # Begin Source File
 
 SOURCE=.\CompanyDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LogInDlg.h
 # End Source File
 # Begin Source File
 

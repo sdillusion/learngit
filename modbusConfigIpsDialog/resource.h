@@ -5,6 +5,7 @@
 #define IDD_MODBUSCONFIGDIALOG_DIALOG   102
 #define IDR_MAINFRAME                   128
 #define IDD_COMPANYDIALOG               131
+#define IDD_DIALOG_LOGIN                132
 #define IDC_BUTTONYC                    1000
 #define IDC_BUTTONYX                    1001
 #define IDC_BUTTONDD                    1002
@@ -80,14 +81,16 @@
 #define IDC_BUTTON_BIGTYPEUPDATE        1103
 #define IDC_BUTTON_COMPANYDELETE        1105
 #define IDC_BUTTON_BIGTYPEDELETE        1106
+#define IDC_EDIT_USERNAME               1106
+#define IDC_EDIT_USERPW                 1107
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1106
+#define _APS_NEXT_CONTROL_VALUE         1107
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
