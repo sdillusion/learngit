@@ -53,9 +53,13 @@ struct ddtype gDdType;
 
 
 bool gIsChanged = false;
-const int YCNUMLIMITE = 30;
-const int YXNUMLIMITE = 17;
-const int DDNUMLIMITE = 20;
+//const int YCNUMLIMITE = 30;
+//const int YXNUMLIMITE = 17;
+//const int DDNUMLIMITE = 20;
+const int YCNUMLIMITE = STRUCTNUM;
+const int YXNUMLIMITE = STRUCTNUM;
+const int DDNUMLIMITE = STRUCTNUM;
+
 //int gSys = -1;
 
 CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
@@ -171,6 +175,7 @@ BEGIN_MESSAGE_MAP(CModbusConfigDialogDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_METHOD_EXPLAIN, OnButtonMethodExplain)
 	ON_BN_CLICKED(IDC_CHECK_BIGUSED, OnCheckBigused)
 	ON_EN_CHANGE(IDC_EDIT_REMARK, OnChangeEditRemark)
+	ON_EN_CHANGE(IDC_EDIT_CBDATALENBIT, OnChangeEditCbdatalenbit)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -204,22 +209,9 @@ BOOL CModbusConfigDialogDlg::OnInitDialog()
 	m_list_attr.SetColumnWidth(1,80);
 	m_list_attr.SetColumnWidth(2,140);
 	m_list_attr.SetColumnWidth(3,80);
-
-	//m_list_attr.DeleteColumn(3);
-	//int columnNum = m_list_attr.GetHeaderCtrl()->GetItemCount();
-	//initListCtrl(10);
 	
 	setComboOption();
 
-	//m_list_attr.InsertItem(0,"0");
-	//m_list_attr.DeleteAllItems();
-	//int i = m_list_attr.GetItemCount();//获取list里面有多少行  
-	//CString ttt;  
-	//ttt.Format("%d",i);  
-	//m_list_attr.InsertItem(i,ttt);//开辟一个行，并且设置行的内容为i的内容  
-	//m_list_attr.SetItemText(i,1,"Str_Name");//i代指在第几行插入数据，第二个参数代指第几列，第三个参数代指插入数据的值  
-
-	//m_list_attr.SetItemText(2,2,"test");
 	m_radio_yc.SetCheck(1);
 	
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -268,7 +260,7 @@ void CModbusConfigDialogDlg::OnDblclkListAttr(NMHDR* pNMHDR, LRESULT* pResult)
     m_Row = pNMListView->iItem;//获得选中的行  
     m_Col = pNMListView->iSubItem;//获得选中列  
 
-    if   (m_Row >= 0 && pNMListView->iSubItem != 0 && m_Col != 1) //如果选择的是子项;  
+    if   (m_Row >= 0 && pNMListView->iSubItem != 0) //如果选择的是子项;  
     {  
         m_list_attr.GetSubItemRect(m_Row,m_Col,LVIR_LABEL,rc);//获得子项的RECT；  
         m_edit_tmp.SetParent(&m_list_attr);//转换坐标为列表框中的坐标  
@@ -278,8 +270,7 @@ void CModbusConfigDialogDlg::OnDblclkListAttr(NMHDR* pNMHDR, LRESULT* pResult)
         m_edit_tmp.SetFocus();//设置Edit焦点  
         m_edit_tmp.ShowCaret();//显示光标  
         m_edit_tmp.SetSel(-1);//将光标移动到最后  
-    }  
-	
+    }
 	*pResult = 0;
 }
 
@@ -331,6 +322,7 @@ void CModbusConfigDialogDlg::OnButtonAddType()
 	strcpy(bigstr.desc, tem.GetBuffer(0));
 	bigstr.checkcrc = -1;
 	bigstr.addrhorl = 'l';
+	strcpy(bigstr.remark, "");
 	vbig.push_back(bigstr);
 	
 	int ret = openDB();
@@ -472,9 +464,13 @@ void CModbusConfigDialogDlg::refreshGroupListBox(){
 
 void CModbusConfigDialogDlg::updateBigidInDB(char* oldid, char* newid){
 	CString str;
-	str.Format("UPDATE big SET id = '%s' WHERE id = '%s';UPDATE yc SET bigid = '%s' WHERE bigid = '%s';UPDATE yx SET bigid = '%s' WHERE bigid = '%s';UPDATE dd SET bigid = '%s' WHERE bigid = '%s';",newid,oldid ,newid,oldid ,newid,oldid ,newid,oldid);
-	char pstr[256];
+	
+	//str.Format("UPDATE big SET id = '%s' WHERE id = '%s';UPDATE yc SET bigid = '%s' WHERE bigid = '%s';UPDATE yx SET bigid = '%s' WHERE bigid = '%s';UPDATE dd SET bigid = '%s' WHERE bigid = '%s';",newid,oldid ,newid,oldid ,newid,oldid ,newid,oldid);
+	str.Format("UPDATE TB2001_PROTOCOL SET F2001_CODE = '%s' WHERE F2001_CODE = '%s';UPDATE TB2003_YCPOINT SET F2001_CODE = '%s' WHERE F2001_CODE = '%s';UPDATE TB2005_YXPOINT SET F2001_CODE = '%s' WHERE F2001_CODE = '%s';UPDATE TB2007_DDPOINT SET F2001_CODE = '%s' WHERE F2001_CODE = '%s';UPDATE TB2002_YCGROUP SET F2001_CODE = '%s' WHERE F2001_CODE = '%s';UPDATE TB2004_YXGROUP SET F2001_CODE = '%s' WHERE F2001_CODE = '%s';UPDATE TB2006_DDGROUP SET F2001_CODE = '%s' WHERE F2001_CODE = '%s';",newid,oldid ,newid,oldid ,newid,oldid ,newid,oldid,newid,oldid ,newid,oldid ,newid,oldid);
+
+	char pstr[512];
 	strcpy(pstr,str);
+	//int i = strlen(pstr);
 	char* cErrMsg;
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
 	if (nRes != SQLITE_OK)
@@ -485,7 +481,9 @@ void CModbusConfigDialogDlg::updateBigidInDB(char* oldid, char* newid){
 
 void CModbusConfigDialogDlg::updateBigDescInDB(char* oldid, char* newdesc){
 	CString str;
-	str.Format("UPDATE big SET desc = '%s' WHERE id = '%s';",newdesc,oldid);
+	//str.Format("UPDATE big SET desc = '%s' WHERE id = '%s';",newdesc,oldid);
+	str.Format("UPDATE TB2001_PROTOCOL SET F2001_DESC = '%s' WHERE F2001_CODE = '%s';",newdesc,oldid);
+
 	char pstr[256];
 	strcpy(pstr,str);
 	char* cErrMsg;
@@ -529,9 +527,6 @@ void CModbusConfigDialogDlg::deleteType(int index){
 	deleteTypeInDB(vbig.at(index).id);
 	bigQuery();
 	closeDB();
-	
-//	deleteTypeInC5DB(vbig.at(index).id, m_c5db);
-//	C5DBbigQuery(m_c5db);
 
 	m_list_group.ResetContent();
 	refreshTypeUI();
@@ -543,7 +538,6 @@ void CModbusConfigDialogDlg::deleteTypeInDB(char* bigid){
 	CString sqlStr;
 	char pstr[512];
 	
-	//sqlStr.Format("delete from big where id = '%s'",bigid);
 	sqlStr.Format("delete from TB2001_PROTOCOL where F2001_CODE = '%s'",bigid);
 	strcpy(pstr,sqlStr);
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
@@ -564,7 +558,6 @@ void CModbusConfigDialogDlg::deleteYcInDB(char *bigid){
 	CString sqlStr;
 	char pstr[512];
 	
-	//sqlStr.Format("delete from yc where bigid = '%s'",bigid);
 	sqlStr.Format("delete from TB2003_YCPOINT where F2001_CODE = '%s'",bigid);
 	strcpy(pstr,sqlStr);
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
@@ -579,7 +572,6 @@ void CModbusConfigDialogDlg::deleteYcGroupInDB(char *bigid){
 	CString sqlStr;
 	char pstr[512];
 	
-	//sqlStr.Format("delete from dd where bigid = '%s'",bigid);
 	sqlStr.Format("delete from TB2002_YCGROUP where F2001_CODE = '%s'",bigid);
 	strcpy(pstr,sqlStr);
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
@@ -594,7 +586,6 @@ void CModbusConfigDialogDlg::deleteYxInDB(char *bigid){
 	CString sqlStr;
 	char pstr[512];
 	
-	//sqlStr.Format("delete from yx where bigid = '%s'",bigid);
 	sqlStr.Format("delete from TB2005_YXPOINT where F2001_CODE = '%s'",bigid);
 	strcpy(pstr,sqlStr);
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
@@ -609,7 +600,6 @@ void CModbusConfigDialogDlg::deleteYxGroupInDB(char *bigid){
 	CString sqlStr;
 	char pstr[512];
 	
-	//sqlStr.Format("delete from dd where bigid = '%s'",bigid);
 	sqlStr.Format("delete from TB2004_YXGROUP where F2001_CODE = '%s'",bigid);
 	strcpy(pstr,sqlStr);
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
@@ -624,7 +614,6 @@ void CModbusConfigDialogDlg::deleteDdInDB(char *bigid){
 	CString sqlStr;
 	char pstr[512];
 	
-	//sqlStr.Format("delete from dd where bigid = '%s'",bigid);
 	sqlStr.Format("delete from TB2007_DDPOINT where F2001_CODE = '%s'",bigid);
 	strcpy(pstr,sqlStr);
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
@@ -639,7 +628,6 @@ void CModbusConfigDialogDlg::deleteDdGroupInDB(char *bigid){
 	CString sqlStr;
 	char pstr[512];
 	
-	//sqlStr.Format("delete from dd where bigid = '%s'",bigid);
 	sqlStr.Format("delete from TB2006_DDGROUP where F2001_CODE = '%s'",bigid);
 	strcpy(pstr,sqlStr);
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
@@ -749,26 +737,8 @@ void CModbusConfigDialogDlg::OnSelchangeListType()
 	for(i = 0,l=gDdType.ddseclen; i < l ; i++){
 		ddQuery(bigstr.id,gDdType.m_ddss[i].id,i);
 	}
-	//ycQuery(bigstr.id);
-	//yxQuery(bigstr.id);
-	//ddQuery(bigstr.id);
 	int ret = closeDB();
 	
-/*
-	C5DBycGroupQuery(bigstr.id, m_c5db);
-	C5DByxGroupQuery(bigstr.id, m_c5db);
-	C5DBddGroupQuery(bigstr.id, m_c5db);
-	int i,l;
-	for(i = 0,l=gYcType.ycseclen; i < l ; i++){
-		C5DBycQuery(bigstr.id,gYcType.m_ycss[i].id,i,m_c5db);
-	}
-	for(i = 0,l=gYxType.yxseclen; i < l ; i++){
-		C5DByxQuery(bigstr.id,gYxType.m_yxss[i].id,i,m_c5db);
-	}
-	for(i = 0,l=gDdType.ddseclen; i < l ; i++){
-		C5DBddQuery(bigstr.id,gDdType.m_ddss[i].id,i,m_c5db);
-	}
-*/
 	m_edit_typedesc.SetWindowText(bigstr.desc);
 
 	m_edit_bigid_val = atoi(bigstr.id);
@@ -905,8 +875,6 @@ void CModbusConfigDialogDlg::refreshUIdd(){
 	updateListCtrlData();
 }
 
-
-
 void CModbusConfigDialogDlg::saveConfig(){
 	if(m_list_type.GetCurSel() < 0){
 		MessageBox("请选择规约！"); 
@@ -914,16 +882,16 @@ void CModbusConfigDialogDlg::saveConfig(){
 	}
 	UpdateData(TRUE);
 
-	for(int i = 0; i < m_edit_datanum_val; i++){
-		int val;
-		if(m_list_attr.GetItemText(i,1).GetLength()){
-			val = atoi(m_list_attr.GetItemText(i,1));
-		}else{
-			val = 999999;
-		}
-		m_list_attr.SetItemData(i, val); 
-	}
-	m_list_attr.SortItems(listCtrlCompareProc,(DWORD)&m_list_attr);
+	//for(int i = 0; i < m_edit_datanum_val; i++){
+	//	int val;
+	//	if(m_list_attr.GetItemText(i,1).GetLength()){
+	//		val = atoi(m_list_attr.GetItemText(i,1));
+	//	}else{
+	//		val = 999999;
+	//	}
+	//	m_list_attr.SetItemData(i, val); 
+	//}
+	//m_list_attr.SortItems(listCtrlCompareProc,(DWORD)&m_list_attr);
 	saveBigConfig();
 	if(m_list_group.GetCurSel() >= 0){
 		if(m_state == 0){
@@ -1691,29 +1659,6 @@ void CModbusConfigDialogDlg::creatYtTable(){
 void CModbusConfigDialogDlg::insertDataYtToDB(){
 	
 }
-/*
-void CModbusConfigDialogDlg::creatCommonTable(){
-	char* cErrMsg;
-	std::string sqlStr = "CREATE TABLE common(rtuInterval INT, reqInterval INT,registerhorl CHAR(1),addrhorl CHAR(1),gcbcheckcrc INT,gcbdatalenbit INT, cbdatalenhorl CHAR(1));";
-	int nRes = sqlite3_exec(pDB , sqlStr.c_str() ,0 ,0, &cErrMsg);
-	if (nRes != SQLITE_OK)
-	{
-		MessageBox("生成数据库common表失败！"); 
-		cout<<"query fail: "<<cErrMsg<<endl;
-	}
-}
-
-void CModbusConfigDialogDlg::insertDataCommonToDB(){
-
-	CString str;
-	char* cErrMsg;
-	str.Format("INSERT INTO common VALUES (%d,%d,'%c','%c',%d,%d,'%c')",commond.reqInterval ? commond.reqInterval : 3,commond.reqInterval ? commond.reqInterval : 3,
-		'h',commond.checkhorl ? commond.checkhorl: 'l',commond.cbcheckcrc ? commond.cbcheckcrc : 1,2,'l');
-	char pstr[256];
-	strcpy(pstr,str);
-	sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
-}
-*/
 
 void CModbusConfigDialogDlg::dropAllTable(){
 	char* cErrMsg;
@@ -1745,7 +1690,7 @@ void CModbusConfigDialogDlg::creatBigTable(){
 	//sqlStr += " addrhorl CHAR(1),gcheckcrc INT,version INT);";
 	std::string sqlStr = "create table TB2001_PROTOCOL (F2001_CODE char(32) NOT NULL, F2001_DESC char(32) NOT NULL,";
 	sqlStr += "F2001_USED int NOT NULL, F2001_SORT int, F2001_ADDRHL char NOT NULL,";
-	sqlStr += "F2001_CRC int NOT NULL, F2001_VERSION int NOT NULL, F1102_CODE char(32) NOT NULL, F2001_REMARK char(32), primary key(F2001_CODE));";
+	sqlStr += "F2001_CRC int NOT NULL, F2001_VERSION int NOT NULL, F2001_REMARK char(32), primary key(F2001_CODE));";
 	int nRes = sqlite3_exec(pDB , sqlStr.c_str() ,0 ,0, &cErrMsg);
 	if (nRes != SQLITE_OK)
 	{
@@ -1758,17 +1703,18 @@ void CModbusConfigDialogDlg::insertDataBigToDB(bigstruct bigstr){
 	CString str;
 	//str.Format("INSERT INTO big VALUES ('%s','%s',null,'%c',%d,%d)",bigstr.id,bigstr.desc,
 	//	 bigstr.addrhorl, bigstr.checkcrc, bigstr.version);
-	str.Format("INSERT INTO TB2001_PROTOCOL (F2001_CODE,F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,F2001_REMARK,F1102_CODE,F2001_SORT) VALUES ('%s','%s','%c',%d,%d,%d,'%s','%s',%d)",bigstr.id,bigstr.desc,
-		 bigstr.addrhorl, bigstr.checkcrc, bigstr.version, bigstr.used, bigstr.remark, bigstr.type,atoi(bigstr.id));
-	char pstr[256];
-	strcpy(pstr,str);
-	char* cErrMsg;
+	str.Format("INSERT INTO TB2001_PROTOCOL (F2001_CODE,F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,F2001_REMARK,F2001_SORT) VALUES ('%s','%s','%c',%d,%d,%d,'%s',%d)",bigstr.id,bigstr.desc,
+		 bigstr.addrhorl, bigstr.checkcrc, bigstr.version, bigstr.used, bigstr.remark, atoi(bigstr.id));
+	char pstr[512];
+	strcpy(pstr,str.GetBuffer(0));
+	//int i = strlen(pstr);
+	char* cErrMsg = NULL;
 	int nRes = sqlite3_exec(pDB , pstr ,0 ,0, &cErrMsg);
 	if (nRes != SQLITE_OK)
 	{
-		MessageBox("新增big数据失败！"); 
-		cout<<"query fail: "<<cErrMsg<<endl;
+		MessageBox("新增TB2001_PROTOCOL数据失败！"); 
 	}
+
 }
 
 void CModbusConfigDialogDlg::checkIsChanged(){
@@ -1820,6 +1766,18 @@ void CModbusConfigDialogDlg::OnSelchangeComboDatalen()
 }
 
 void CModbusConfigDialogDlg::OnChangeEditReqnum() 
+{
+	// TODO: If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialog::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+	
+	// TODO: Add your control notification handler code here
+	gIsChanged = true;
+	saveConfig();
+}
+
+void CModbusConfigDialogDlg::OnChangeEditCbdatalenbit() 
 {
 	// TODO: If this is a RICHEDIT control, the control will not
 	// send this notification unless you override the CDialog::OnInitDialog()
@@ -2471,17 +2429,10 @@ void CModbusConfigDialogDlg::ddResultFormat(int nrownum, int ncolnum, char** arg
 		gDdType.m_ddss[ddssindex].ddslen++;
 		int ddsindex = gDdType.m_ddss[ddssindex].ddslen-1;
 
-		//varName = m_pRecordset->GetCollect ("F2007_CODE");
 		strcpy(gDdType.m_ddss[ddssindex].dds[ddsindex].id, argv[offset + 2]);
-		//varName = m_pRecordset->GetCollect ("F2007_DESC");
 		strcpy(gDdType.m_ddss[ddssindex].dds[ddsindex].desc, argv[offset + 3]);
-		///varName = m_pRecordset->GetCollect ("F2007_COE");
 		gDdType.m_ddss[ddssindex].dds[ddsindex].coe = argv[offset + 4] ? atof(argv[offset + 4]) : 1.0;
-		//varName = m_pRecordset->GetCollect ("F2007_USED");
 		gDdType.m_ddss[ddssindex].dds[ddsindex].used = atoi(argv[offset + 5]);
-		//varName = m_pRecordset->GetCollect ("F2007_SORT");
-		//gDdType.m_ddss[ddssindex].dds[ddsindex].sort = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : 0;
-		//varName = m_pRecordset->GetCollect ("F2007_POINTNO");
 		gDdType.m_ddss[ddssindex].dds[ddsindex].dit = (argv[offset + 6]) ? atoi(argv[offset + 6]) : -1;
 
 		gDdType.m_ddss[ddssindex].dds[ddsindex].horl = gDdType.m_ddss[ddssindex].horl;
@@ -2493,16 +2444,10 @@ void CModbusConfigDialogDlg::ddResultFormat(int nrownum, int ncolnum, char** arg
 int bigResult(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	if(argc != 6){
-		//MessageBox("big表列数不符");
 		MessageBox(NULL, "big表列数不符","",MB_OK);
 		return -1;
 	}
 	CModbusConfigDialogDlg* t = (CModbusConfigDialogDlg*)NotUsed;
-
-	//t->m_yctypeNum++;
-	//t->m_yxtypeNum++;
-	//t->m_ddtypeNum++;
-	//t->m_typeNum++;
 	
 	bigstruct bigstr;
 	strcpy(bigstr.desc,argv[1]);
@@ -2517,29 +2462,10 @@ int bigResult(void *NotUsed, int argc, char **argv, char **azColName)
 
 int CModbusConfigDialogDlg::bigQuery(){
 
-	//m_typeNum=0;
-
-	//m_yctypeNum=0;
-	//m_yxtypeNum=0;
-	//m_ddtypeNum=0;
-/*
-	char* cErrMsg;
-	string sqlStr = "select * from big order by desc";
-
-	vbig.clear();
-	int nRes = sqlite3_exec(pDB , sqlStr.c_str() ,bigResult ,this, &cErrMsg);
-	if (nRes != SQLITE_OK)
-	{
-		MessageBox("查询数据库big表失败");
-		return -1;
-	}
-
-	return 0;
-*/
 	char* cErrMsg;
 	int nrownum = 0, ncolnum = 0;  
 	char **azResult;
-	char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK,RTRIM(F1102_CODE) as F1102_CODE";
+	char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK";
 	CString sqlStr;
 	sqlStr.Format("select %s from TB2001_PROTOCOL order by cast(F2001_CODE as int) asc", bigHeadName);
 
@@ -2562,40 +2488,15 @@ void CModbusConfigDialogDlg::bigResultFormat(int nrownum, int ncolnum, char **ar
 	for(int iRow = 1; iRow <= nrownum; iRow++){
 		int offset = ncolnum * iRow;
 		
-		//nowVersion = argv[offset + 5] ? atoi(argv[offset + 5]) : 0;
-		
-		//gregisterhorl = *argv[offset + 3];
-		//strcpy(gbigid, argv[offset + 0]);
-		//gcheckcrc = argv[offset + 4] ? atoi(argv[offset + 4]) : 0;
-		//if(gcheckcrc == 0 || gcheckcrc == 2){
-		//	gcheckhorl = 'h';
-		//}else{
-		//	gcheckhorl = 'l';
-		//}
-		//if(gcheckcrc == 2 || gcheckcrc == 3){
-		//	m_CRCtype = 0;
-		//}else{
-		//	m_CRCtype = 1;
-		//}
-
 		bigstruct bigstr;
-		//_variant_t varName;
-		//varName = m_pRecordset->GetCollect ("F2001_CODE");
 		strcpy(bigstr.id, argv[offset + 0]);
-		//varName = m_pRecordset->GetCollect ("F2001_DESC");
 		strcpy(bigstr.desc, argv[offset + 1]);
-		//varName = m_pRecordset->GetCollect ("F2001_ADDRHL");
 		bigstr.addrhorl = argv[offset + 2] ? *argv[offset + 2] : 'h';
-		//varName = m_pRecordset->GetCollect ("F2001_CRC");
 		bigstr.checkcrc = (argv[offset + 6]) ? atoi(argv[offset + 3]) : -1;
-		//varName = m_pRecordset->GetCollect ("F2001_VERSION");
 		bigstr.version = (argv[offset + 6]) ? atoi(argv[offset + 4]) : 0;
-		//varName = m_pRecordset->GetCollect ("F2001_USED");
 		bigstr.used = (argv[offset + 6]) ? atoi(argv[offset + 5]) : 0;
-		//varName = m_pRecordset->GetCollect ("F2001_REMARK");
 		strcpy(bigstr.remark, argv[offset + 6] ? argv[offset + 6] : "");
-		//varName = m_pRecordset->GetCollect ("F1102_CODE");
-		strcpy(bigstr.type, argv[offset + 7]);
+		//strcpy(bigstr.type, argv[offset + 7]);
 		vbig.push_back(bigstr);
 	}
 }
@@ -2604,7 +2505,6 @@ void CModbusConfigDialogDlg::bigResultFormat(int nrownum, int ncolnum, char **ar
 int ykResult(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	CModbusConfigDialogDlg* t = (CModbusConfigDialogDlg*)NotUsed;
-
     return 0;
 }
 
@@ -2681,12 +2581,7 @@ void CModbusConfigDialogDlg::refreshTypeUI(){
 			CString str;
 			CString str1 = vbig.at(i).id;
 			CString str2 = vbig.at(i).desc;
-			//str1.TrimRight();
-			//str2.TrimRight();
-			//str = str1.TrimRight() + ": " + str2.TrimRight();
 			str.Format("%s: %s", str1, str2);
-			//str = str + "、";
-			//str = str + vbig.at(i).desc;
 			m_list_type.AddString(str.GetBuffer(0));
 		}
 	}
@@ -2806,8 +2701,6 @@ void CModbusConfigDialogDlg::OnButtonNewdb()
 		creatYcTable();
 		creatYxTable();
 		creatDdTable();
-		//creatYkTable();
-		//creatYtTable();
 
 		//bigQuery();
 		closeDB();
@@ -2819,15 +2712,14 @@ void CModbusConfigDialogDlg::OnButtonNewdb()
 
 void CModbusConfigDialogDlg::OnButtonSaveconfigtodb() 
 {
-	// TODO: Add your control notification handler code here
 	int index = m_list_type.GetCurSel();
 	if(index<0){
 		MessageBox("请选择规约");
 		return;
 	}
 	saveConfig();
-	//checkDit();
-	autoAddDit();
+	checkDit();
+	//autoAddDit();
 	bigstruct bigstr = vbig.at(m_type_sel);
 	if(gIsChanged){
 		bigstr.version++;
@@ -2847,6 +2739,7 @@ void CModbusConfigDialogDlg::OnButtonSaveconfigtodb()
 	insertDataYxToDB();
 	insertDataDdToDB();
 
+	gIsChanged = false;
 	ret = closeDB();
 	
 	if(ret == -1){
@@ -3191,7 +3084,7 @@ void CModbusConfigDialogDlg::initTypes(){
 		itoa(id, bigstr.id, 10);
 		
 		strcpy(bigstr.desc, "备用");
-		bigstr.checkcrc = -1;
+		bigstr.checkcrc = 0;
 		bigstr.addrhorl = 'l';
 		bigstr.used = 0;
 		bigstr.version = 0;
@@ -3287,3 +3180,5 @@ void CModbusConfigDialogDlg::OnButtonAddcompany()
 	}
 }
 */
+
+

@@ -13,12 +13,14 @@
 #include "c5modbus.h"
 
 #define DCV_LOG_MODBUS 8
-const int CHECKCHANGEINTERVAL = 120;//单位:秒  检查变化的时间间隔，同时也是发送心跳报文的时间
-const int DTUOFFLINETIME = 60;//单位：秒  dtu设备在此时间内不返回报文则认为dtu设备不在线
+//const int CHECKCHANGEINTERVAL = 120;//单位:秒  检查变化的时间间隔，同时也是发送心跳报文的时间
+//const int DTUOFFLINETIME = 60;//单位：秒  dtu设备在此时间内不返回报文则认为dtu设备不在线
 
 DLLEXPORT CProtocol* CreateProtocol(char *defpara)
 {
-	//_CrtSetBreakAlloc(211);
+	//_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
+	//_CrtSetBreakAlloc(243);
+	
 	CProtocol *pEpv = new CC5Modbus;
 	return pEpv;
 }
@@ -83,6 +85,8 @@ CC5Modbus::CC5Modbus()
 
 	m_ackDataLen = 0;
 	m_askFrameType = FRAME_ERR;
+
+	
 }
 
 CC5Modbus::~CC5Modbus()
@@ -95,8 +99,7 @@ CC5Modbus::~CC5Modbus()
 void CC5Modbus::Init(S_PROTOCOLCFG * pcfg )
 {
 	#ifdef DEBUG_MODE
-	//char* tc = "test";
-	kprintf(LOG_COMM,
+		kprintf(LOG_COMM,
 			DCV_LOG_MODBUS,
 			LOG_INFORMATION,
 			"规约初始化开始 ");
@@ -111,21 +114,24 @@ void CC5Modbus::Init(S_PROTOCOLCFG * pcfg )
 	pHis		=	pcfg->pHis;
 	pPara		=	pcfg->pPara;
 	m_timeOut = pLink->GetRxTimeouts();
-	m_lastcbdataTime = lastCheckChange = m_lastReqTime = m_lastSendTime = GetNowSecond();
-	m_lastHertTime = 0;
-	gdevonline = 0;
-	gcbheartbeat = 0;
-	gdtuonline = 0;
+	nowBigid = pLink->GetAllDataScanInterval();
+	greqInterval = pLink->GetKwhScanInterval();
+	m_lastReqTime = m_lastSendTime = GetNowSecond();
+	//m_lastcbdataTime = lastCheckChange = GetNowSecond();
+	//m_lastHertTime = 0;
+	//gdevonline = 0;
+	//gcbheartbeat = 0;
+	//gdtuonline = 0;
 
 	
-	if(m_timeOut < 100 || m_timeOut > 10000)
-		m_timeOut = 303;
+	if(m_timeOut < 1 || m_timeOut > 1000)
+		m_timeOut = 3;
 
-	greqInterval = m_timeOut/100 * 10;//前两位为周期
-	m_timeOut = m_timeOut % 100 * 10;//后两位为超时时间
+	//greqInterval = m_timeOut/100 * 1;//前两位为周期
+	//m_timeOut = m_timeOut % 100 * 1;//后两位为超时时间
 
-	getC2RtuInfo();
-	isSendBuf = 1;//初始化时候不做检查判断，改为默认的发送报文
+	//getC2RtuInfo();
+	//isSendBuf = 1;//初始化时候不做检查判断，改为默认的发送报文
 
 	char szapipath[MAX_PATH] = {0};//
 
@@ -197,12 +203,14 @@ void CC5Modbus::Init(S_PROTOCOLCFG * pcfg )
 			LOG_INFORMATION,
 			"规约初始化结束 rtu:%d", rtuno);
 	#endif
+	//_CrtDumpMemoryLeaks();
 }
 
 //
 sint32 CC5Modbus::RxProc()
 {
 	ParseFrame();
+	//_CrtDumpMemoryLeaks();
 	return 1;
 }
 
@@ -211,6 +219,7 @@ sint32 CC5Modbus::TxProc()
 {
 	int nowtime;
 	//如果有改变则暂停发送报文
+	/*
 	if(isSendBuf == 0){
 		nowtime = GetNowSecond();
 		//当超过时限时发送心跳激活通道
@@ -221,24 +230,25 @@ sint32 CC5Modbus::TxProc()
 		}
 		return 0;
 	}
+	*/
 	nowtime = GetNowSecond();
 	
-	if(nowtime - lastCheckChange > CHECKCHANGEINTERVAL){
-		checkChange();
-	}
+	//if(nowtime - lastCheckChange > CHECKCHANGEINTERVAL){
+	//	checkChange();
+	//}
 
-	if(IsNeedToSendHeartBeat(nowtime)){
-		SendHeartBeat();
-	}
+	//if(IsNeedToSendHeartBeat(nowtime)){
+	//	SendHeartBeat();
+	//}
 	
 	E_RAW_ComStat coms = pLink->GetCommStatus();
 	if( coms != CMST_TX_CNT && coms != CMST_NORMAL){
 		return 0;
 	}
 
-	if(!gdevonline || !gcbheartbeat){
-		return 0;
-	}
+//	if((!gdevonline || !gcbheartbeat) && gisheartbeat){
+//		return 0;
+//	}
 
 	if(nowtime - m_lastReqTime < greqInterval){
 		return 0;
@@ -364,7 +374,7 @@ void CC5Modbus::RequestYx()
 	uint16  yxnum	= 0;
 	yxsection yxsec = m_yxss[gcuryx];
 	yxnum = yxsec.yxnum ? yxsec.yxnum : yxsec.yxslen;
-	m_yxss[gcuryx].yxdatalen = yxnum * 2;
+	m_yxss[gcuryx].yxdatalen = yxnum;
 
 	if(yxnum <= 0 || yxnum > 0x1000)
 		return;
@@ -476,18 +486,18 @@ void CC5Modbus::RequestDD(){
 }
 
 void CC5Modbus::sendMSG(uint8* buf, int dataLen){
-	if(gisregiste){
-		int buflen = addRegHead(buf, dataLen);
-		pLink->RegisterFrmCode(RAW_CODEDIR_DOWN,(char *)buf,buflen);
-		pTxBuf->Write(buf,buflen);
-	}else{
+	//if(gisregiste){
+	//	int buflen = addRegHead(buf, dataLen);
+	//	pLink->RegisterFrmCode(RAW_CODEDIR_DOWN,(char *)buf,buflen);
+	//	pTxBuf->Write(buf,buflen);
+	//}else{
 		pLink->RegisterFrmCode(RAW_CODEDIR_DOWN,(char *)buf,dataLen);
 		pTxBuf->Write(buf,dataLen);
-	}
+	//}
 	pLink->SetCommStatus(CMST_RX_CNT);
 	m_lastSendTime = GetNowSecond();
 }
-
+/*
 int CC5Modbus::addRegHead(uint8 *buf, int buflen){
 	int gregisteheadlen = strlen(gregistehead);
 	int gregistetaillen = strlen(gregistetail);
@@ -620,9 +630,10 @@ void CC5Modbus::SendHeartBeat(){
 
 	return;
 }
-
+*/
 void CC5Modbus::ParseFrame()
 {
+	/*
 	if(gisheartbeat && !gcbheartbeat){
 		CheckHeartBeat();
 		sint32 rtuno = pLink->GetRtuNo();
@@ -631,17 +642,17 @@ void CC5Modbus::ParseFrame()
 		//pLink->SetCommStatus(CMST_TX_CNT);
 		return;
 	}
-
+*/
 	int nowtime = GetNowSecond();
 
 	sint32 rtuno = pLink->GetRtuNo();
 	sint32 rtuaddr = pRtu->GetRtuAddr(rtuno);
 
-	if(gdtuonline == 1 && nowtime - m_lastcbdataTime > DTUOFFLINETIME){
-		gdtuonline = 0;
-		int yxnum = pRtu->GetYxNum(rtuno);
-		PRawCtrl->PutAYx(rtuno, yxnum-3, gdtuonline);
-	}
+	//if(gdtuonline == 1 && nowtime - m_lastcbdataTime > DTUOFFLINETIME){
+	//	gdtuonline = 0;
+	//	int yxnum = pRtu->GetYxNum(rtuno);
+	//	PRawCtrl->PutAYx(rtuno, yxnum-3, gdtuonline);
+	//}
 
 	uint8  buf[2048];
 	int datalen = 0 ,datanum =0;
@@ -704,12 +715,12 @@ void CC5Modbus::ParseFrame()
 	
 	//m_lastReqTime = nowtime;
 	ProcessBuf(buf, rtuno,  buflen,  datalen);
-	m_lastcbdataTime = nowtime;
-	if(gdtuonline == 0){
-		gdtuonline = 1;
-		int yxnum = pRtu->GetYxNum(rtuno);
-		PRawCtrl->PutAYx(rtuno, yxnum-3, gdtuonline);
-	}
+	//m_lastcbdataTime = nowtime;
+	//if(gdtuonline == 0){
+	//	gdtuonline = 1;
+	//	int yxnum = pRtu->GetYxNum(rtuno);
+	//	PRawCtrl->PutAYx(rtuno, yxnum-3, gdtuonline);
+	//}
 }
 
 void CC5Modbus::ProcessBuf(uint8* buf, sint32 rtuno, int buflen, int datalen){
@@ -818,7 +829,7 @@ void CC5Modbus::ProcessYc(uint8 *buf, int datalen)
 				kprintf(LOG_COMM,
 						DCV_LOG_MODBUS,
 						LOG_VIOLATION,
-						"yc点号没有填写：%s, %d, %d ",ycstr.desc, gcuryc, i);
+						"yc点号没有填写： %d, %d ", gcuryc, i);
 			}
 			putvalindex++;
 		}
@@ -919,7 +930,7 @@ void CC5Modbus::ProcessYx(uint8 *buf, int datalen)
 				kprintf(LOG_COMM,
 						DCV_LOG_MODBUS,
 						LOG_VIOLATION,
-						"点号没有填写：%s, %d, %d ",yxstr.desc, gcuryx, i);
+						"点号没有填写： %d, %d ", gcuryx, i);
 			}
 			putvalindex++;
 		}
@@ -992,7 +1003,7 @@ void CC5Modbus::ProcessDD(uint8 *buf, int datalen)
 				kprintf(LOG_COMM,
 						DCV_LOG_MODBUS,
 						LOG_VIOLATION,
-						"点号没有填写：%s , %d, %d ",ddstr.desc, gcurdd, i);
+						"点号没有填写： %d, %d ", gcurdd, i);
 			}
 			putvalindex++;
 		}
@@ -1005,19 +1016,19 @@ void CC5Modbus::ProcessDD(uint8 *buf, int datalen)
 
 void CC5Modbus::setCommonConfig(){
 	//gcbtimeout =  4;
-	gisregiste = 1;
-	gisheartbeat = 1;//是否有心跳报文
+	gisregiste = 0;
+	gisheartbeat = 0;//是否有心跳报文
 	//grutInterval = 3;//RTU时间间隔
 	
 	
-	gheartbeatInterval = 12;//心跳报文间隔
+//	gheartbeatInterval = 12;//心跳报文间隔
 	//gcbdatalenbit = 2;//返回报文数据数量所占位数
 	
-	strcpy(ghearthead,"eeeeeeee");//心跳报文内容
-	strcpy(gregistehead,"eb90eb90");//注册报文头
-	strcpy(gregistetail,"ea80ea80");//注册报文尾
-	strcpy(gcbheartsucceed,"eeee01ee");//心跳注册成功返回报文
-	strcpy(gcbheartfail,"eeee00ee");//心跳注册失败返回报文
+//	strcpy(ghearthead,"eeeeeeee");//心跳报文内容
+//	strcpy(gregistehead,"eb90eb90");//注册报文头
+//	strcpy(gregistetail,"ea80ea80");//注册报文尾
+//	strcpy(gcbheartsucceed,"eeee01ee");//心跳注册成功返回报文
+//	strcpy(gcbheartfail,"eeee00ee");//心跳注册失败返回报文
 
 
 	gregisterhorl = 'h';//寄存器地址高低位规则
@@ -1032,42 +1043,15 @@ std::string CC5Modbus::bigmakeSqlStr(int rtuno){
 	sqlStr += strTmp;
 	return sqlStr;
 }
-/*
-bool CC5Modbus::bigquery(const std::string& sqlStr)
-{
-  char* cErrMsg;
-  int nrownum = 0, ncolnum = 0;  
-  char **azResult;
- 
-  int nRes = sqlite3_get_table(pDB, sqlStr.c_str(), &azResult, &nrownum, &ncolnum, &cErrMsg);
-  if (nRes != SQLITE_OK)
-  {
-	kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_ERROR,
-			"查询数据库big表失败，%s",cErrMsg);
-    return false;
-  }else if(nrownum < 1){
-	kprintf(LOG_COMM,
-		DCV_LOG_MODBUS,
-		LOG_VIOLATION,
-		"查询数据库big表没有数据");
-	return false;
-  }else{
-	bigResultFormat(nrownum, ncolnum, azResult);
-  }
-  return true;
-}
-*/
-bool CC5Modbus::bigquery(int rtuno)
-{
 
+bool CC5Modbus::bigquery(int bigid)
+{
 	char* cErrMsg;
 	int nrownum = 0, ncolnum = 0;  
 	char **azResult;
-	char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK,RTRIM(F1102_CODE) as F1102_CODE";
+	char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK";
 	CString sqlStr;
-	sqlStr.Format("select %s from TB2001_PROTOCOL where F2001_CODE = '%d' order by cast(F2001_CODE as int) asc", bigHeadName, rtuno);
+	sqlStr.Format("select %s from TB2001_PROTOCOL where F2001_CODE = '%d' order by cast(F2001_CODE as int) asc", bigHeadName, bigid);
 
 	int nRes = sqlite3_get_table(pDB, sqlStr.GetBuffer(0), &azResult, &nrownum, &ncolnum, &cErrMsg);
 	if (nRes != SQLITE_OK)
@@ -1149,8 +1133,11 @@ void CC5Modbus::ycGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		int offset = ncolnum * iRow;
 
 		m_ycsectionNum++;
-		int ycssindex = m_ycsectionNum-1;
+		ycssindex = m_ycsectionNum-1;
 		m_ycss[ycssindex].ycslen = 0;
+		//清空vector
+		vector<ycstruct>().swap(m_ycss[ycssindex].ycs);
+
 		m_ycss[ycssindex].addr = atoi(argv[offset + 3]);
 		m_ycss[ycssindex].startindex = 0;
 		m_ycss[ycssindex].ycdatalen = atoi(argv[offset + 4]);
@@ -1163,20 +1150,19 @@ void CC5Modbus::ycGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		m_ycss[ycssindex].nankey = atoi(argv[offset + 10]);
 		m_ycss[ycssindex].nanvalue = atoi(argv[offset + 11]);
 		//strcpy(m_ycss[ycssindex].desc, argv[offset + 2]);
-		//strcpy(m_ycss[ycssindex].id, argv[offset + 1]);
+		strcpy(m_ycss[ycssindex].id, argv[offset + 1]);
 	}
 }
 
 bool CC5Modbus::yxGroupQuery(char* bigid){
+	m_yxsectionNum = 0;
 	CString id = bigid;
 	char * yxgroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2004_CODE) as F2004_CODE,RTRIM(F2004_DESC) as F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL";
-
-	m_yxsectionNum = 0;
+	
 	CString sqlStr;
 	sqlStr.Format("select %s from TB2004_YXGROUP where F2001_CODE = '%s' order by cast(F2004_CODE as int)", yxgroupHeadName, id);
 
 	char* cErrMsg = 0;
-
 	int nrownum = 0, ncolnum = 0;  
 	char **azResult;
 	int nRes = sqlite3_get_table(pDB, sqlStr.GetBuffer(0), &azResult, &nrownum, &ncolnum, &cErrMsg);
@@ -1196,7 +1182,6 @@ bool CC5Modbus::yxGroupQuery(char* bigid){
 	}else{
 		yxGroupResultFormat(nrownum, ncolnum, azResult);
 	}
-
 	return true;
 }
 
@@ -1205,8 +1190,10 @@ void CC5Modbus::yxGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		int offset = ncolnum * iRow;
 
 		m_yxsectionNum++;
-		int yxssindex = m_yxsectionNum-1;
+		yxssindex = m_yxsectionNum-1;
 		m_yxss[yxssindex].yxslen = 0;
+		//清空vector
+		vector<yxstruct>().swap(m_yxss[yxssindex].yxs);
 
 		m_yxss[yxssindex].addr = atoi(argv[offset + 3]);
 		m_yxss[yxssindex].startindex =  0;
@@ -1231,12 +1218,10 @@ bool CC5Modbus::ddGroupQuery(char* bigid){
 	sqlStr.Format("select %s from TB2006_DDGROUP where F2001_CODE = '%s' order by cast(F2006_CODE as int)",ddGroupHeadName, id);
 	
 	char* cErrMsg = 0;
-
 	int nrownum = 0, ncolnum = 0;  
 	char **azResult;
 	int nRes = sqlite3_get_table(pDB, sqlStr.GetBuffer(0), &azResult, &nrownum, &ncolnum, &cErrMsg);
-	if (nRes != SQLITE_OK)
-	{
+	if (nRes != SQLITE_OK){
 		kprintf(LOG_COMM,
 			DCV_LOG_MODBUS,
 			LOG_ERROR,
@@ -1260,8 +1245,11 @@ void CC5Modbus::ddGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		int offset = ncolnum * iRow;
 
 		m_ddsectionNum++;
-		int ddssindex = m_ddsectionNum-1;
+		ddssindex = m_ddsectionNum-1;
 		m_ddss[ddssindex].ddslen = 0;
+		//清空vector
+		vector<ddstruct>().swap(m_ddss[ddssindex].dds);
+
 		m_ddss[ddssindex].addr = atoi(argv[offset + 3]);
 		m_ddss[ddssindex].startindex =  0;
 		m_ddss[ddssindex].dddatalen = atoi(argv[offset + 4]);
@@ -1325,10 +1313,12 @@ void CC5Modbus::ycResultFormat(int nrownum, int ncolnum, char **argv, int ycssin
 		int offset = ncolnum * iRow;
 
 		m_ycss[ycssindex].ycslen++;
+		ycstruct ycstr;
+		m_ycss[ycssindex].ycs.push_back(ycstr);
 		int ycsindex = m_ycss[ycssindex].ycslen-1;
 
 		strcpy(m_ycss[ycssindex].ycs[ycsindex].id, argv[offset + 2]);
-		strcpy(m_ycss[ycssindex].ycs[ycsindex].desc, argv[offset + 3]);
+		//strcpy(m_ycss[ycssindex].ycs[ycsindex].desc, argv[offset + 3]);
 		m_ycss[ycssindex].ycs[ycsindex].coe = argv[offset + 4] ? atof(argv[offset + 4]) : 1.0;
 		m_ycss[ycssindex].ycs[ycsindex].used = atoi(argv[offset + 5]);
 		m_ycss[ycssindex].ycs[ycsindex].dit = (argv[offset + 6]) ? atoi(argv[offset + 6]) : -1;
@@ -1384,10 +1374,12 @@ void CC5Modbus::yxResultFormat(int nrownum, int ncolnum, char **argv, int yxssin
 		int offset = ncolnum * iRow;
 
 		m_yxss[yxssindex].yxslen++;
+		yxstruct yxstr;
+		m_yxss[yxssindex].yxs.push_back(yxstr);
 		int yxsindex = m_yxss[yxssindex].yxslen-1;
 
 		strcpy(m_yxss[yxssindex].yxs[yxsindex].id, argv[offset + 2]);
-		strcpy(m_yxss[yxssindex].yxs[yxsindex].desc, argv[offset + 3]);
+		//strcpy(m_yxss[yxssindex].yxs[yxsindex].desc, argv[offset + 3]);
 		m_yxss[yxssindex].yxs[yxsindex].used = atoi(argv[offset + 4]);
 		m_yxss[yxssindex].yxs[yxsindex].dit = (argv[offset + 5]) ? atoi(argv[offset + 5]) : -1;
 
@@ -1439,10 +1431,12 @@ void CC5Modbus::ddResultFormat(int nrownum, int ncolnum, char **argv, int ddssin
 		int offset = ncolnum * iRow;
 
 		m_ddss[ddssindex].ddslen++;
+		ddstruct ddstr;
+		m_ddss[ddssindex].dds.push_back(ddstr);
 		int ddsindex = m_ddss[ddssindex].ddslen-1;
 
 		strcpy(m_ddss[ddssindex].dds[ddsindex].id, argv[offset + 2]);
-		strcpy(m_ddss[ddssindex].dds[ddsindex].desc, argv[offset + 3]);
+		//strcpy(m_ddss[ddssindex].dds[ddsindex].desc, argv[offset + 3]);
 		m_ddss[ddssindex].dds[ddsindex].coe = argv[offset + 4] ? atof(argv[offset + 4]) : 1.0;
 		m_ddss[ddssindex].dds[ddsindex].used = atoi(argv[offset + 5]);
 		m_ddss[ddssindex].dds[ddsindex].dit = (argv[offset + 6]) ? atoi(argv[offset + 6]) : -1;
@@ -1453,377 +1447,18 @@ void CC5Modbus::ddResultFormat(int nrownum, int ncolnum, char **argv, int ddssin
 	}
 }
 
-
-
-
-
-bool CC5Modbus::C5DBycGroupQuery(char* bigid, C5DB c5db){
-	CString id = bigid;
-	//gYcType.ycseclen = 0;
-	//CString sqlStr = "select * from ycgroup where bigid = '" + id +"'";
-
-	char* ycGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2002_DESC) as F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL";
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2002_YCGROUP where F2001_CODE = '%s' order by CONVERT(int, F2002_CODE)", ycGroupHeadName, id);
-
-	_RecordsetPtr m_pRecordset;
-	if(c5db.querySQL(sqlStr, m_pRecordset)){
-		while(!m_pRecordset->GetadoEOF()){
-			_variant_t varName;
-			//gYcType.ycseclen++;
-			//int ycssindex = gYcType.ycseclen-1;
-			ycssindex++;
-			m_ycss[ycssindex].ycslen = 0;
-			varName = m_pRecordset->GetCollect ("F2002_ADDR");
-			m_ycss[ycssindex].addr = _ttoi((char *)_bstr_t(varName));
-			//varName = m_pRecordset->GetCollect ("addr");
-			m_ycss[ycssindex].startindex =  0;
-			varName = m_pRecordset->GetCollect ("F2002_RXDATALEN");
-			m_ycss[ycssindex].ycdatalen = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2002_RXDATALENBIT");
-			m_ycss[ycssindex].cbdatalenbit = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : 1;
-			varName = m_pRecordset->GetCollect ("F2002_METHOD");
-			m_ycss[ycssindex].method = _ttoi((char *)_bstr_t(varName));
-
-			varName = m_pRecordset->GetCollect ("F2002_DATALENHL");
-			m_ycss[ycssindex].horl = (char *)_bstr_t(varName) ? *(char *)_bstr_t(varName) : 'h';
-			varName = m_pRecordset->GetCollect ("F2002_RXDATALENBITHL");
-			m_ycss[ycssindex].cbdatahorl = (char *)_bstr_t(varName) ? *(char *)_bstr_t(varName) : 'h';
-			varName = m_pRecordset->GetCollect ("F2002_HASINVALIDVAL");
-			m_ycss[ycssindex].hasnan = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2002_INVALIDIFVAL");
-			m_ycss[ycssindex].nankey = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2002_INVALIDREVAL");
-			m_ycss[ycssindex].nanvalue = _ttoi((char *)_bstr_t(varName));
-			//varName = m_pRecordset->GetCollect ("F2002_DESC");
-			//strcpy(m_ycss[ycssindex].desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2002_CODE");
-			strcpy(m_ycss[ycssindex].id, (char *)_bstr_t(varName));
-
-			/*bigstruct bigstr;
-			_variant_t varName;
-			varName = m_pRecordset->GetCollect ("id");
-			strcpy(bigstr.id, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("describe");
-			strcpy(bigstr.desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("addrhorl");
-			bigstr.addrhorl = *(char *)_bstr_t(varName);
-			varName = m_pRecordset->GetCollect ("gcheckcrc");
-			bigstr.checkcrc = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("version");
-			bigstr.version = _ttoi((char *)_bstr_t(varName));
-			vbig.push_back(bigstr);
-			*/
-
-			//cout<<strName.GetBuffer(0)<<endl;
-			//OutputDebugString(strName.GetBuffer(0));
-			//OutputDebugString("\n");
-
-			m_pRecordset->MoveNext();
-		}
-		m_pRecordset->Close();
-		m_pRecordset.Release();
-		m_ycsectionNum = ycssindex + 1;
-		return true;
-	}else{
-		m_ycsectionNum = 0;
-	}
-	return false;
-}
-bool CC5Modbus::C5DByxGroupQuery(char* bigid, C5DB c5db){
-	CString id = bigid;
-	//gYxType.yxseclen = 0;
-	//CString sqlStr = "select * from yxgroup where bigid = '" + id +"'";
-
-	char * yxgroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2004_CODE) as F2004_CODE,RTRIM(F2004_DESC) as F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL";
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2004_YXGROUP where F2001_CODE = '%s' order by CONVERT(int, F2004_CODE)", yxgroupHeadName, id);
-
-	_RecordsetPtr m_pRecordset;
-	if(c5db.querySQL(sqlStr, m_pRecordset)){
-		while(!m_pRecordset->GetadoEOF()){
-			_variant_t varName;
-			//gYxType.yxseclen++;
-			//int yxssindex = gYxType.yxseclen-1;
-			yxssindex++;
-			m_yxss[yxssindex].yxslen = 0;
-
-			varName = m_pRecordset->GetCollect ("F2004_ADDR");
-			m_yxss[yxssindex].addr = _ttoi((char *)_bstr_t(varName));
-			//varName = m_pRecordset->GetCollect ("addr");
-			m_yxss[yxssindex].startindex =  0;
-			
-			varName = m_pRecordset->GetCollect ("F2004_RXDATALENBIT");
-			m_yxss[yxssindex].cbdatalenbit = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : 1;
-			varName = m_pRecordset->GetCollect ("F2004_METHOD");
-			m_yxss[yxssindex].method = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2004_YXNUM");
-			m_yxss[yxssindex].yxnum = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : 0;
-
-			varName = m_pRecordset->GetCollect ("F2004_DATALENHL");
-			m_yxss[yxssindex].horl = (char *)_bstr_t(varName) ? *(char *)_bstr_t(varName) : 'h';
-			varName = m_pRecordset->GetCollect ("F2004_RXDATALENBITHL");
-			m_yxss[yxssindex].cbdatahorl = (char *)_bstr_t(varName) ? *(char *)_bstr_t(varName) : 'h';
-			
-			//varName = m_pRecordset->GetCollect ("F2004_DESC");
-			//strcpy(m_yxss[yxssindex].desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2004_CODE");
-			strcpy(m_yxss[yxssindex].id, (char *)_bstr_t(varName));
-
-			m_pRecordset->MoveNext();
-		}
-		m_pRecordset->Close();
-		m_pRecordset.Release();
-		m_yxsectionNum = yxssindex + 1;
-		return true;
-	}else{
-		m_yxsectionNum = 0;
-	}
-	return false;
-}
-bool CC5Modbus::C5DBddGroupQuery(char* bigid, C5DB c5db){
-	CString id = bigid;
-	//gDdType.ddseclen = 0;
-	//CString sqlStr = "select * from ddgroup where bigid = '" + id +"'";
-
-	char * ddGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2006_DESC) as F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL";
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2006_DDGROUP where F2001_CODE = '%s' order by CONVERT(int, F2006_CODE)",ddGroupHeadName, id);
-
-	_RecordsetPtr m_pRecordset;
-	if(c5db.querySQL(sqlStr, m_pRecordset)){
-		while(!m_pRecordset->GetadoEOF()){
-			_variant_t varName;
-			//gDdType.ddseclen++;
-			//int ddssindex = gDdType.ddseclen-1;
-			ddssindex++;
-			m_ddss[ddssindex].ddslen = 0;
-			varName = m_pRecordset->GetCollect ("F2006_ADDR");
-			m_ddss[ddssindex].addr = _ttoi((char *)_bstr_t(varName));
-			m_ddss[ddssindex].startindex =  0;
-			varName = m_pRecordset->GetCollect ("F2006_RXDATALEN");
-			m_ddss[ddssindex].dddatalen = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2006_RXDATALENBIT");
-			m_ddss[ddssindex].cbdatalenbit = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : 1;
-			varName = m_pRecordset->GetCollect ("F2006_METHOD");
-			m_ddss[ddssindex].method = _ttoi((char *)_bstr_t(varName));
-
-			varName = m_pRecordset->GetCollect ("F2006_DATALENHL");
-			m_ddss[ddssindex].horl = (char *)_bstr_t(varName) ? *(char *)_bstr_t(varName) : 'h';
-			varName = m_pRecordset->GetCollect ("F2006_RXDATALENBITHL");
-			m_ddss[ddssindex].cbdatahorl = (char *)_bstr_t(varName) ? *(char *)_bstr_t(varName) : 'h';
-			varName = m_pRecordset->GetCollect ("F2006_HASINVALIDVAL");
-			m_ddss[ddssindex].hasnan = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2006_INVALIDIFVAL");
-			m_ddss[ddssindex].nankey = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2006_INVALIDREVAL");
-			m_ddss[ddssindex].nanvalue = _ttoi((char *)_bstr_t(varName));
-			//varName = m_pRecordset->GetCollect ("F2006_DESC");
-			//strcpy(m_ddss[ddssindex].desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2006_CODE");
-			strcpy(m_ddss[ddssindex].id, (char *)_bstr_t(varName));
-
-			m_pRecordset->MoveNext();
-		}
-		m_pRecordset->Close();
-		m_pRecordset.Release();
-		m_ddsectionNum = ddssindex + 1;
-		return true;
-	}else{
-		m_ddsectionNum = 0;
-	}
-	return false;
-}
-bool CC5Modbus::C5DBycQuery(char* bigid, char* groupid, int ycssindex, C5DB c5db){
-	CString id1 = bigid;
-	CString id2= groupid;
-	//gYcType.ycseclen = 0;
-	//CString sqlStr = "select * from yc where bigid = '" + id1 +"'" + " and groupid = '" + id2 + "'";
-
-	char* ycHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2003_CODE) as F2003_CODE,RTRIM(F2003_DESC) as F2003_DESC,F2003_COE,F2003_USED,F2003_POINTNO";
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2003_YCPOINT where F2001_CODE = '%s' and F2002_CODE = '%s' order by CONVERT(int, F2003_CODE)", ycHeadName, id1, id2);
-
-	_RecordsetPtr m_pRecordset;
-	if(c5db.querySQL(sqlStr, m_pRecordset)){
-		while(!m_pRecordset->GetadoEOF()){
-			_variant_t varName;
-			//gYcType.ycseclen++;
-			//ycssindex = gYcType.ycseclen-1;
-			m_ycss[ycssindex].ycslen++;
-			int ycsindex = m_ycss[ycssindex].ycslen-1;
-
-			varName = m_pRecordset->GetCollect ("F2003_CODE");
-			strcpy(m_ycss[ycssindex].ycs[ycsindex].id, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2003_DESC");
-			strcpy(m_ycss[ycssindex].ycs[ycsindex].desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2003_COE");
-			m_ycss[ycssindex].ycs[ycsindex].coe = (char *)_bstr_t(varName) ? atof((char *)_bstr_t(varName)) : 1.0;
-			varName = m_pRecordset->GetCollect ("F2003_USED");
-			m_ycss[ycssindex].ycs[ycsindex].used = _ttoi((char *)_bstr_t(varName));
-			//varName = m_pRecordset->GetCollect ("F2003_SORT");
-			//m_ycss[ycssindex].ycs[ycsindex].sort = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2003_POINTNO");
-			m_ycss[ycssindex].ycs[ycsindex].dit = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : -1;
-
-			m_ycss[ycssindex].ycs[ycsindex].horl = m_ycss[ycssindex].horl;
-			m_ycss[ycssindex].ycs[ycsindex].method = m_ycss[ycssindex].method;
-			m_ycss[ycssindex].ycs[ycsindex].length = m_ycss[ycssindex].ycdatalen;
-
-			m_pRecordset->MoveNext();
-		}
-		m_pRecordset->Close();
-		m_pRecordset.Release();
-		return true;
-	}
-	return false;
-}
-bool CC5Modbus::C5DByxQuery(char* bigid, char* groupid, int yxssindex, C5DB c5db){
-	CString id1 = bigid;
-	CString id2= groupid;
-	//gYcType.ycseclen = 0;
-	//CString sqlStr = "select * from yx where bigid = '" + id1 +"'" + " and groupid = '" + id2 + "'";
-	char * yxHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2004_CODE) as F2004_CODE,RTRIM(F2005_CODE) as F2005_CODE,RTRIM(F2005_DESC) as F2005_DESC,F2005_USED,F2005_POINTNO";
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2005_YXPOINT where F2001_CODE = '%s' and F2004_CODE = '%s' order by CONVERT(int, F2005_CODE)", yxHeadName, id1, id2);
-	
-	_RecordsetPtr m_pRecordset;
-	if(c5db.querySQL(sqlStr, m_pRecordset)){
-		while(!m_pRecordset->GetadoEOF()){
-			_variant_t varName;
-			//gYxType.yxseclen++;
-			m_yxss[yxssindex].yxslen++;
-			int yxsindex = m_yxss[yxssindex].yxslen-1;
-
-			varName = m_pRecordset->GetCollect ("F2005_CODE");
-			strcpy(m_yxss[yxssindex].yxs[yxsindex].id, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2005_DESC");
-			strcpy(m_yxss[yxssindex].yxs[yxsindex].desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2005_USED");
-			m_yxss[yxssindex].yxs[yxsindex].used = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2005_POINTNO");
-			m_yxss[yxssindex].yxs[yxsindex].dit = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : -1;
-
-			m_yxss[yxssindex].yxs[yxsindex].horl = m_yxss[yxssindex].horl;
-
-			m_pRecordset->MoveNext();
-		}
-		m_pRecordset->Close();
-		m_pRecordset.Release();
-		return true;
-	}
-	return false;
-}
-bool CC5Modbus::C5DBddQuery(char* bigid, char* groupid, int ddssindex, C5DB c5db){
-	CString id1 = bigid;
-	CString id2= groupid;
-	//gYcType.ycseclen = 0;
-	//CString sqlStr = "select * from dd where bigid = '" + id1 +"'" + " and groupid = '" + id2 + "'";
-	char * ddHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2007_CODE) as F2007_CODE,RTRIM(F2007_DESC) as F2007_DESC,F2007_COE,F2007_USED,F2007_POINTNO";
-
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2007_DDPOINT where F2001_CODE = '%s' and F2006_CODE = '%s' order by CONVERT(int, F2007_CODE)", ddHeadName, id1, id2);
-	_RecordsetPtr m_pRecordset;
-	if(c5db.querySQL(sqlStr, m_pRecordset)){
-		while(!m_pRecordset->GetadoEOF()){
-			_variant_t varName;
-			//gDdType.ddseclen++;
-			m_ddss[ddssindex].ddslen++;
-			int ddsindex = m_ddss[ddssindex].ddslen-1;
-
-			varName = m_pRecordset->GetCollect ("F2007_CODE");
-			strcpy(m_ddss[ddssindex].dds[ddsindex].id, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2007_DESC");
-			strcpy(m_ddss[ddssindex].dds[ddsindex].desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2007_COE");
-			m_ddss[ddssindex].dds[ddsindex].coe = (char *)_bstr_t(varName) ? atof((char *)_bstr_t(varName)) : 1.0;
-			varName = m_pRecordset->GetCollect ("F2007_USED");
-			m_ddss[ddssindex].dds[ddsindex].used = _ttoi((char *)_bstr_t(varName));
-			//varName = m_pRecordset->GetCollect ("sort");
-			//m_ddss[ddssindex].dds[ddsindex].sort = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2007_POINTNO");
-			m_ddss[ddssindex].dds[ddsindex].dit = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : -1;
-
-			m_ddss[ddssindex].dds[ddsindex].horl = m_ddss[ddssindex].horl;
-			m_ddss[ddssindex].dds[ddsindex].method = m_ddss[ddssindex].method;
-			m_ddss[ddssindex].dds[ddsindex].length = m_ddss[ddssindex].dddatalen;
-
-			m_pRecordset->MoveNext();
-		}
-		m_pRecordset->Close();
-		m_pRecordset.Release();
-		return true;
-	}
-	return false;
-}
-bool CC5Modbus::C5DBbigQuery(int bigid, C5DB c5db){
-	//CString sqlStr = "select * from big order by id asc";
-	char s[12];
-    itoa(bigid,s,10);
-	CString ss = s;
-	//CString sqlStr = "select id,describe,sort,addrhorl,gcheckcrc,version from big where id = '" + ss + "'";
-
-	char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK,RTRIM(F1102_CODE) as F1102_CODE";
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2001_PROTOCOL where F2001_CODE = %s", bigHeadName, ss);
-
-	//return 0;
-
-	_RecordsetPtr m_pRecordset;
-	if(c5db.querySQL(sqlStr, m_pRecordset)){
-		while(!m_pRecordset->GetadoEOF()){
-			//bigstruct bigstr;
-			
-			_variant_t varName;
-			varName = m_pRecordset->GetCollect ("F2001_CODE");
-			strcpy(gbigid, (char *)_bstr_t(varName));
-			//varName = m_pRecordset->GetCollect ("describe");
-			//strcpy(bigstr.desc, (char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2001_ADDRHL");
-			gregisterhorl = (char *)_bstr_t(varName) ? *(char *)_bstr_t(varName) : 'h';
-			varName = m_pRecordset->GetCollect ("F2001_CRC");
-			gcheckcrc = _ttoi((char *)_bstr_t(varName));
-			varName = m_pRecordset->GetCollect ("F2001_VERSION");
-			nowVersion = _ttoi((char *)_bstr_t(varName));
-			if(gcheckcrc == 0 || gcheckcrc == 2){
-				gcheckhorl = 'h';
-			}else{
-				gcheckhorl = 'l';
-			}
-			if(gcheckcrc == 2 || gcheckcrc == 3){
-				m_CRCtype = 0;
-			}else{
-				m_CRCtype = 1;
-			}
-			
-			//vbig.push_back(bigstr);
-
-			//cout<<strName.GetBuffer(0)<<endl;
-			//OutputDebugString(strName.GetBuffer(0));
-			//OutputDebugString("\n");
-
-			m_pRecordset->MoveNext();
-		}
-		m_pRecordset->Close();
-		m_pRecordset.Release();
-		return true;
-	}
-	return false;
-}
-
-
+/*
 void CC5Modbus::checkChange(){
 	
 	lastCheckChange = GetNowSecond();
 	int version;
-/*
+
 	char dbBasePath[128];
 	char dbPath[128];
 	sint32 rtuno = pLink->GetRtuNo();
 	sprintf(dbBasePath, "./%s.db", pPara);
 	sprintf(dbPath, "./%s_%d.db", pPara, rtuno);
 	CopyFile(dbBasePath, dbPath, false);
-
 
 	//打开路径采用utf-8编码
 	//如果路径中包含中文，需要进行编码转换
@@ -1836,71 +1471,40 @@ void CC5Modbus::checkChange(){
 			"打开数据库%s失败,",dbPath);
 	  return;
 	}
-	std::string bigsqlStr = bigmakeSqlStr(nowBigid);
+
+	char s[12];
+	itoa(nowBigid,s,10);
+	CString ss = s;
+	char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK,RTRIM(F1102_CODE) as F1102_CODE";
+	CString sqlStr;
+	sqlStr.Format("select %s from TB2001_PROTOCOL where F2001_CODE = %s ", bigHeadName, ss);
+
+	//std::string bigsqlStr = bigmakeSqlStr(nowBigid);
 	char* cErrMsg;
 	int nrownum = 0, ncolnum = 0;  
 	char **azResult;
 
-	nRes = sqlite3_get_table(pDB, bigsqlStr.c_str(), &azResult, &nrownum, &ncolnum, &cErrMsg);
+	nRes = sqlite3_get_table(pDB, sqlStr.GetBuffer(0), &azResult, &nrownum, &ncolnum, &cErrMsg);
 	if (nRes != SQLITE_OK)
 	{
 		kprintf(LOG_COMM,
 			DCV_LOG_MODBUS,
 			LOG_ERROR,
-			"查询数据库big表失败，%s",cErrMsg);
+			"查找是否有更改时，规约配置读取失败，%s, %s  ",cErrMsg, sqlStr);
 	}else if(nrownum < 1){
 		kprintf(LOG_COMM,
 			DCV_LOG_MODBUS,
 			LOG_VIOLATION,
-			"查询数据库big表没有数据");
+			"查询数据库TB2001_PROTOCOL表没有数据");
 	}else{
 		//bigResultFormat(nrownum, ncolnum, azResult);
 		for(int iRow = 1; iRow <= nrownum; iRow++){
 			int offset = ncolnum * iRow;
-			version = azResult[offset + 5] ? atoi(azResult[offset + 5]) : 0;
+			version = azResult[offset + 4] ? atoi(azResult[offset + 4]) : 0;
 		}
 	}
 	sqlite3_close(pDB);
 	remove(dbPath);
-*/
-
-	if(m_c5db.openDB()){
-		
-		char s[12];
-		itoa(nowBigid,s,10);
-		CString ss = s;
-		//CString sqlStr = "select id,describe,sort,addrhorl,gcheckcrc,version from big where id = '" + ss + "'";
-		char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK,RTRIM(F1102_CODE) as F1102_CODE";
-		CString sqlStr;
-		sqlStr.Format("select %s from TB2001_PROTOCOL where F2001_CODE = %s ", bigHeadName, ss);
-
-		_RecordsetPtr m_pRecordset;
-		if(m_c5db.querySQL(sqlStr, m_pRecordset)){
-			while(!m_pRecordset->GetadoEOF()){
-				//bigstruct bigstr;
-				
-				_variant_t varName;
-				
-				varName = m_pRecordset->GetCollect ("F2001_VERSION");
-				version = (char *)_bstr_t(varName) ? _ttoi((char *)_bstr_t(varName)) : 0;
-
-				m_pRecordset->MoveNext();
-			}
-			m_pRecordset->Close();
-			m_pRecordset.Release();
-		}else{
-			kprintf(LOG_COMM,
-				DCV_LOG_MODBUS,
-				LOG_ERROR,
-				"查找是否有更改时，规约配置读取失败 %s", sqlStr);
-		}
-		m_c5db.closeDB();
-	}else{
-		kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_ERROR,
-			"查找是否有更改时，规约配置打开数据库失败");
-	}
 
 	if(nowVersion != version){
 		isSendBuf = 0;
@@ -1911,6 +1515,7 @@ void CC5Modbus::checkChange(){
 	}
 	nowVersion = version;
 	getC2RtuInfo();
+	
 }
 
 //获取RTU信息，并检查 bigid、bigname 是否有改变
@@ -1971,7 +1576,7 @@ void CC5Modbus::getC2RtuInfo(){
 	sqlite3_close(pDB);
 	pDB=NULL;
 }
-
+*/
 
 //16进制转float
 float sixteen2float(uint8* buf, int len, char horl){
@@ -2173,6 +1778,7 @@ int CC5Modbus::analysisBuffer(unsigned char* buf, int method, int index, char cb
 		return yx4char(buf, index, cbdatahorl);
 		break;
 	case 16:
+		return yx4word(buf, index, cbdatahorl);
 		break;
 	case 17:
 		break;
@@ -2204,7 +1810,11 @@ int CC5Modbus::analysisDd(unsigned char* buf, int index, char cbdatahorl){
 }
 
 int CC5Modbus::Int2(unsigned char* pData, int index, char cbdatahorl){
-	iResult = pData[2*index+1] + pData[2*index]*256;
+	if(cbdatahorl == 'h'){
+		iResult = pData[2*index+1] + pData[2*index]*256;
+	}else{
+		iResult = pData[2*index+1]*256 + pData[2*index];
+	}
 	return 0;
 }
 /*
@@ -2388,8 +1998,16 @@ int CC5Modbus::yx4char(unsigned char* buf, int index, char cbdatahorl){
 			iResult = value & 0x0100;
 		}
 	}
+	
 	return 0;
 }
+
+int CC5Modbus::yx4word(unsigned char* buf, int index, char cbdatahorl){
+	sint16 value = buf[index];
+	iResult = value;
+	return 0;
+}
+
 
 int CC5Modbus::IpsYc(unsigned char* pData, int index, char cbdatahorl){
 	sint16 value=0;
@@ -2473,6 +2091,5 @@ int CC5Modbus::NewIpsYc(unsigned char* pData, int index, char cbdatahorl){
 	t1=pData[0]*0x100+pData[1];
 	
     iResult = t1;//单位kwh
-
 	return 0;
 }

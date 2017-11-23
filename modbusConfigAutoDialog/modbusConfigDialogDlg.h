@@ -19,7 +19,7 @@ using namespace std;
 
 typedef int		    sint32;
 const int SECTIONNUM = 32;
-const int TYPENUM = 32;
+//const int TYPENUM = 32;
 const int STRUCTNUM = 64;
 const int SYSC2 = 0;
 const int SYSC5 = 1;
@@ -41,7 +41,7 @@ struct BIGTYPESTRUCT{
 	CString id;
 	CString companyid;
 };
-
+/*
 struct commonData{
 	int reqInterval;
 	char checkhorl;
@@ -58,6 +58,7 @@ struct commonData{
 	char cbHeartFail[CHARLEN];
 	char cbRegiste[CHARLEN];
 };
+*/
 struct bigstruct{
 	char id[CHARLEN];
 	char desc[CHARLEN];
@@ -475,6 +476,7 @@ protected:
 	afx_msg void OnSelchangeComboCompany();
 	afx_msg void OnSelchangeComboBigtype();
 	afx_msg void OnButtonAddcompany();
+	afx_msg void OnChangeEditCbdatalenbit();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

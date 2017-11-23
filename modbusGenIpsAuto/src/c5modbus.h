@@ -5,6 +5,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <vector>
+
 #include "c5db.h"
 #include "comm/protocolbase.h"
 #define DEBUG_MODE _DEBUG
@@ -31,7 +33,7 @@ using namespace std;
 
 struct ycstruct{
 	char id[CHARLEN];
-	char desc[CHARLEN];
+	//char desc[CHARLEN];
 	float coe;
 	int rel;
 	int length;
@@ -43,7 +45,8 @@ struct ycstruct{
 };
 struct ycsection{
 	sint32 addr;
-	ycstruct ycs[256];
+	//ycstruct ycs[256];
+	vector<ycstruct> ycs;
 	char id[CHARLEN];
 	int ycslen;
 	int ycdatalen;
@@ -59,7 +62,7 @@ struct ycsection{
 
 struct yxstruct{
 	char id[CHARLEN];
-	char desc[CHARLEN];
+	//char desc[CHARLEN];
 	//int coe;
 	//int length;
 	char horl;
@@ -69,7 +72,8 @@ struct yxstruct{
 };
 struct yxsection{
 	sint32 addr;
-	yxstruct yxs[256];
+	//yxstruct yxs[256];
+	vector<yxstruct> yxs;
 	char id[CHARLEN];
 	int yxslen;
 	int yxdatalen;
@@ -84,7 +88,7 @@ struct yxsection{
 
 struct ddstruct{
 	char id[CHARLEN];
-	char desc[CHARLEN];
+	//char desc[CHARLEN];
 	float coe;
 	int rel;
 	int length;
@@ -96,7 +100,8 @@ struct ddstruct{
 };
 struct ddsection{
 	sint32 addr;
-	ddstruct dds[256];
+	//ddstruct dds[256];
+	vector<ddstruct> dds;
 	char id[CHARLEN];
 	int ddslen;
 	int dddatalen;
@@ -165,6 +170,8 @@ public:
 	virtual sint32 GetZfFlag( ){return 0;};
 	virtual void   Init( S_PROTOCOLCFG * pcfg );
 
+	void interleavedInit();
+
 	bool CheckHeartBeat();
 	void SendHeartBeat();
 	bool IsNeedToSendHeartBeat(int now);
@@ -225,6 +232,8 @@ private:
 	int m_timeOut;
 
 public:
+	bool isInited;//是否已经初始化
+	int systemInitTime;//系统初始化时间
 
 	int isSendBuf;//是否暂停发送报文，1发送，0不发送
 	int nowBigid;//现规约id,从c2数据库读取
@@ -233,6 +242,8 @@ public:
 	int lastCheckChange;//上次检查变化时间
 
 	void getC2RtuInfo();
+	void getC2RtuInfoTest();
+
 	void getC5RtuInfo();
 
 	int m_askFrameType;

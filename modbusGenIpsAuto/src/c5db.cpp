@@ -105,7 +105,7 @@ bool C5DB::openDB(){
     HRESULT hr=gsqlSp.CreateInstance(_uuidof(Connection));
     if(FAILED(hr))
     {
-        cout<<"_ConnectionPtr对象指针实例化失败！！！"<<endl;
+        //cout<<"_ConnectionPtr对象指针实例化失败！！！"<<endl;
         return false;
     }else {
         try {
@@ -153,6 +153,7 @@ bool C5DB::querySQL(CString strSQL, _RecordsetPtr & m_pRecordset){
 		return false;
     }
 	return true;
+	/*
 	while(!m_pRecordset->GetadoEOF()){
 		_variant_t varName;
 		varName = m_pRecordset->GetCollect ("LastName");
@@ -167,6 +168,7 @@ bool C5DB::querySQL(CString strSQL, _RecordsetPtr & m_pRecordset){
 	}
 	m_pRecordset->Close();
 	m_pRecordset.Release();
+	*/
 }
 
 void C5DB::closeDB(){

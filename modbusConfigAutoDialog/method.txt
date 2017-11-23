@@ -120,6 +120,12 @@ int CC5Modbus::yx4char(unsigned char* buf, int index, char cbdatahorl){
 	return 0;
 }
 
+int CC5Modbus::yx4word(unsigned char* buf, int index, char cbdatahorl){
+	sint16 value = buf[index];
+	iResult = value;
+	return 0;
+}
+
 int CC5Modbus::IpsYc(unsigned char* pData, int index, char cbdatahorl){
 	sint16 value=0;
 	int len_num=0;

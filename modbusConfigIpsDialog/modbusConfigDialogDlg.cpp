@@ -72,7 +72,6 @@ const int DDNUMLIMITE = 20;
 //C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
 C5DB m_c5db = C5DB("127.0.0.1","Qwertyuiop1");
 //C5DB m_c5db = C5DB("192.168.1.30","Wontex@1");
-//C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
 
 CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CModbusConfigDialogDlg::IDD, pParent)
@@ -104,8 +103,6 @@ CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	
 	m_group_sel = -1;
 	m_type_sel = -1;
-	
-
 }
 
 void CModbusConfigDialogDlg::DoDataExchange(CDataExchange* pDX)
@@ -339,7 +336,6 @@ void CModbusConfigDialogDlg::OnButtonAddType()
 		MessageBox("请先填写规约名");
 		return;
 	}
-	//m_typeNum++;
 	bigstruct bigstr;
 	int id = 1;
 	int len = vbig.size();
@@ -376,13 +372,9 @@ void CModbusConfigDialogDlg::OnButtonAddType()
 	bigQuery();
 	closeDB();
 
-	//if(m_c5db.openDB()){
-		insertDataBigToC5DB(bigstr, m_c5db);
-		C5DBbigQuery(m_c5db);
+	insertDataBigToC5DB(bigstr, m_c5db);
+	C5DBbigQuery(m_c5db);
 
-	//	m_c5db.closeDB();
-	//}
-	
 	refreshTypeUI();
 }
 
@@ -562,7 +554,6 @@ void CModbusConfigDialogDlg::deleteGroup(int index){
 
 void CModbusConfigDialogDlg::deleteType(int index){
 
-	//m_typeNum--;
 	int ret = openDB();
 	if(ret == -1){
 		MessageBox("请新建或打开数据库");
@@ -572,12 +563,8 @@ void CModbusConfigDialogDlg::deleteType(int index){
 	bigQuery();
 	closeDB();
 	
-	//if(m_c5db.openDB()){
-		deleteTypeInC5DB(vbig.at(index).id, m_c5db);
-		C5DBbigQuery(m_c5db);
-
-	//	m_c5db.closeDB();
-	//}
+	deleteTypeInC5DB(vbig.at(index).id, m_c5db);
+	C5DBbigQuery(m_c5db);
 
 	m_list_group.ResetContent();
 	refreshTypeUI();
@@ -736,26 +723,22 @@ void CModbusConfigDialogDlg::OnSelchangeListType()
 	int ret = closeDB();
 	*/
 
-	//if(m_c5db.openDB()){
-		C5DBycGroupQuery(bigstr.id, m_c5db);
-		C5DByxGroupQuery(bigstr.id, m_c5db);
-		C5DBddGroupQuery(bigstr.id, m_c5db);
-		int i,l;
-		for(i = 0,l=gYcType.ycseclen; i < l ; i++){
-			C5DBycQuery(bigstr.id,gYcType.m_ycss[i].id,i,m_c5db);
-		}
-		for(i = 0,l=gYxType.yxseclen; i < l ; i++){
-			C5DByxQuery(bigstr.id,gYxType.m_yxss[i].id,i,m_c5db);
-		}
-		for(i = 0,l=gDdType.ddseclen; i < l ; i++){
-			C5DBddQuery(bigstr.id,gDdType.m_ddss[i].id,i,m_c5db);
-		}
-		//m_c5db.closeDB();
-	//}
+	C5DBycGroupQuery(bigstr.id, m_c5db);
+	C5DByxGroupQuery(bigstr.id, m_c5db);
+	C5DBddGroupQuery(bigstr.id, m_c5db);
+	int i,l;
+	for(i = 0,l=gYcType.ycseclen; i < l ; i++){
+		C5DBycQuery(bigstr.id,gYcType.m_ycss[i].id,i,m_c5db);
+	}
+	for(i = 0,l=gYxType.yxseclen; i < l ; i++){
+		C5DByxQuery(bigstr.id,gYxType.m_yxss[i].id,i,m_c5db);
+	}
+	for(i = 0,l=gDdType.ddseclen; i < l ; i++){
+		C5DBddQuery(bigstr.id,gDdType.m_ddss[i].id,i,m_c5db);
+	}
 
 	m_edit_typedesc.SetWindowText(bigstr.desc);
 
-	//m_edit_bigid.SetWindowText(bigstr.id);
 	m_edit_bigid_val = atoi(bigstr.id);
 	m_static_typeindex.SetWindowText(bigstr.id);
 
@@ -812,10 +795,6 @@ void CModbusConfigDialogDlg::refreshUI(){
 	UpdateData(FALSE);
 }
 
-//void CModbusConfigDialogDlg::refreshUIcommon(){
-//	m_combo_crc_val = commond.cbcheckcrc;
-//}
-
 void CModbusConfigDialogDlg::refreshUIyc(){
 	m_combo_addr_val.Format("%d", gYcType.m_ycss[m_group_sel].addr);
 	m_edit_startindex_val = gYcType.m_ycss[m_group_sel].startindex;
@@ -871,7 +850,7 @@ void CModbusConfigDialogDlg::refreshUIdd(){
 	m_check_hasnan_val = gDdType.m_ddss[m_group_sel].hasnan ? true : false;
 	m_edit_nankey_val = gDdType.m_ddss[m_group_sel].nankey;
 	m_edit_nanvalue_val = gDdType.m_ddss[m_group_sel].nanvalue;
-	//m_combo_datalen_val = m_ddss[m_group_sel].dddatalen;
+
 	if(gDdType.m_ddss[m_group_sel].dddatalen == 2){
 		m_combo_datalen_val = 0;
 	}else if(gDdType.m_ddss[m_group_sel].dddatalen == 4){
@@ -899,10 +878,6 @@ void CModbusConfigDialogDlg::saveConfig(){
 		MessageBox("请选择规约！"); 
 		return;
 	}
-	//if(m_list_group.GetCurSel() < 0){
-	//	MessageBox("请选择组！"); 
-	//	return;
-	//}
 	UpdateData(TRUE);
 
 	for(int i = 0; i < m_edit_datanum_val; i++){
@@ -915,7 +890,6 @@ void CModbusConfigDialogDlg::saveConfig(){
 		m_list_attr.SetItemData(i, val); 
 	}
 	m_list_attr.SortItems(listCtrlCompareProc,(DWORD)&m_list_attr);
-	//saveCommonConfig();
 	saveBigConfig();
 	if(m_list_group.GetCurSel() >= 0){
 		if(m_state == 0){
@@ -926,7 +900,6 @@ void CModbusConfigDialogDlg::saveConfig(){
 			saveDdConfig();
 		}
 	}
-	
 }
 
 
@@ -1019,11 +992,6 @@ static int CALLBACK listCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
 	return lParam1 - lParam2;
 }
 
-//void CModbusConfigDialogDlg::saveCommonConfig(){
-//	commond.cbcheckcrc = m_combo_crc_val;
-//	commond.checkhorl = m_combo_crc_val == 1?'h':'l';
-//}
-
 void CModbusConfigDialogDlg::saveBigConfig(){
 	vbig.at(m_type_sel).checkcrc = m_combo_crc_val;
 	vbig.at(m_type_sel).addrhorl = m_combo_addrhorl_val == 1?'l':'h';
@@ -1032,13 +1000,6 @@ void CModbusConfigDialogDlg::saveBigConfig(){
 		strcpy(vbig.at(m_type_sel).type , vBigtype.at(m_combo_bigtype_val).id.GetBuffer(0));
 	}
 	strcpy(vbig.at(m_type_sel).remark, m_edit_remark_val.GetBuffer(0));
-
-	//for(int i = 0; i < m_yctypeNum; i++){
-	//	char id[32];
-	//	itoa(i,id,10);
-	//	strcpy(bigs[i].id,id);
-	//}
-	
 }
 
 void CModbusConfigDialogDlg::saveYcConfig(){
@@ -1952,13 +1913,10 @@ int commonResult(void *NotUsed, int argc, char **argv, char **azColName)
 		return -1;
 	}
 	CModbusConfigDialogDlg* t = (CModbusConfigDialogDlg*)NotUsed;
-
 	commond.reqInterval = atoi(argv[1]);
 	commond.cbcheckcrc = atoi(argv[4]);
-
     return 0;
 }
-
 
 int CModbusConfigDialogDlg::commonQuery(){
 	char* cErrMsg;

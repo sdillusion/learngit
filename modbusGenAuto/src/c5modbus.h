@@ -5,7 +5,19 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "c5db.h"
+//#ifdef _DEBUG // 内存泄漏检测支持。
+//#define _CRTDBG_MAP_ALLOC
+//#include <stdlib.h>
+//#include <malloc.h>    // 解决 malloc.h 与 crtdbg.h 顺序导致的 Debug Assertion Failed, "Corrupted pointer passed to _freea" 。
+//#include <crtdbg.h>
+//#ifndef DBG_NEW
+//#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+//#define new DBG_NEW
+//#endif
+//#endif  // _DEBUG
+
+//#include "c5db.h"
+#include <vector>
 #include "comm/protocolbase.h"
 #define DEBUG_MODE _DEBUG
 
@@ -31,7 +43,7 @@ using namespace std;
 
 struct ycstruct{
 	char id[CHARLEN];
-	char desc[CHARLEN];
+	//char desc[CHARLEN];
 	float coe;
 	int rel;
 	int length;
@@ -43,7 +55,8 @@ struct ycstruct{
 };
 struct ycsection{
 	sint32 addr;
-	ycstruct ycs[256];
+	//ycstruct ycs[256];
+	vector<ycstruct> ycs;
 	char id[CHARLEN];
 	int ycslen;
 	int ycdatalen;
@@ -59,7 +72,7 @@ struct ycsection{
 
 struct yxstruct{
 	char id[CHARLEN];
-	char desc[CHARLEN];
+	//char desc[CHARLEN];
 	//int coe;
 	//int length;
 	char horl;
@@ -69,7 +82,8 @@ struct yxstruct{
 };
 struct yxsection{
 	sint32 addr;
-	yxstruct yxs[256];
+	//yxstruct yxs[256];
+	vector<yxstruct> yxs;
 	char id[CHARLEN];
 	int yxslen;
 	int yxdatalen;
@@ -84,7 +98,7 @@ struct yxsection{
 
 struct ddstruct{
 	char id[CHARLEN];
-	char desc[CHARLEN];
+	//char desc[CHARLEN];
 	float coe;
 	int rel;
 	int length;
@@ -96,7 +110,8 @@ struct ddstruct{
 };
 struct ddsection{
 	sint32 addr;
-	ddstruct dds[256];
+	//ddstruct dds[256];
+	vector<ddstruct> dds;
 	char id[CHARLEN];
 	int ddslen;
 	int dddatalen;
@@ -147,7 +162,7 @@ public:
 	bool ytquery(const std::string& sqlStr);
 	bool ykquery(const std::string& sqlStr);
 
-	bool bigquery(int rtuno);
+	bool bigquery(int bigid);
 	bool ycGroupQuery(char* bigid);
 	bool yxGroupQuery(char* bigid);
 	bool ddGroupQuery(char* bigid);
@@ -166,29 +181,29 @@ public:
 	void ykResultFormat(int nrownum, int ncolnum, char **azResult);
 
 
-	bool C5DBycGroupQuery(char* bigid, C5DB c5db);
-	bool C5DByxGroupQuery(char* bigid, C5DB c5db);
-	bool C5DBddGroupQuery(char* bigid, C5DB c5db);
-	bool C5DBycQuery(char* bigid, char* groupid, int ycssindex, C5DB c5db);
-	bool C5DByxQuery(char* bigid, char* groupid, int yxssindex, C5DB c5db);
-	bool C5DBddQuery(char* bigid, char* groupid, int ddssindex, C5DB c5db);
-	bool C5DBbigQuery(int bigid, C5DB c5db);
+//	bool C5DBycGroupQuery(char* bigid, C5DB c5db);
+//	bool C5DByxGroupQuery(char* bigid, C5DB c5db);
+//	bool C5DBddGroupQuery(char* bigid, C5DB c5db);
+//	bool C5DBycQuery(char* bigid, char* groupid, int ycssindex, C5DB c5db);
+//	bool C5DByxQuery(char* bigid, char* groupid, int yxssindex, C5DB c5db);
+//	bool C5DBddQuery(char* bigid, char* groupid, int ddssindex, C5DB c5db);
+//	bool C5DBbigQuery(int bigid, C5DB c5db);
 
 	virtual sint32 TxProc();
 	virtual sint32 RxProc();
 	virtual sint32 GetZfFlag( ){return 0;};
 	virtual void   Init( S_PROTOCOLCFG * pcfg );
 
-	bool CheckHeartBeat();
-	void SendHeartBeat();
-	bool IsNeedToSendHeartBeat(int now);
+	//bool CheckHeartBeat();
+	//void SendHeartBeat();
+	//bool IsNeedToSendHeartBeat(int now);
 
 	bool CheckCbCrc();
 
 	short int CalcYcShortVal(BYTE HighByte,BYTE LowByte);
 	int makeBitYxVal(int len, char horl, unsigned char*buf);
 
-	int addRegHead(uint8* buf,int buflen);
+	//int addRegHead(uint8* buf,int buflen);
 
 	void sendMSG(uint8* buf, int datalen);
 	void setCommonConfig();
@@ -219,6 +234,7 @@ public:
 	int EX_INT8_PM800(unsigned char* buf, int index, char cbdatahorl);
 	int yx4bit(unsigned char*buf, int index, char cbdatahorl);
 	int yx4char(unsigned char* buf, int index, char cbdatahorl);
+	int yx4word(unsigned char* buf, int index, char cbdatahorl);
 
 	int IpsYc(unsigned char* buf, int index, char cbdatahorl);
 	int IpsYx(unsigned char* buf, int index, char cbdatahorl);
@@ -226,7 +242,7 @@ public:
 
 	int NewIpsYc(unsigned char* pData, int index, char cbdatahorl);
 
-	void checkChange();//检查bigid、bigname、version变化
+	//void checkChange();//检查bigid、bigname、version变化
 
 protected:
 	virtual         ~CC5Modbus();
@@ -240,14 +256,14 @@ private:
 
 public:
 
-	int isSendBuf;//是否暂停发送报文，1发送，0不发送
+	//int isSendBuf;//是否暂停发送报文，1发送，0不发送
 	int nowBigid;//现规约id,从c2数据库读取
-	int nowBigname;//现设备注册id
+	//int nowBigname;//现设备注册id
 	int nowVersion;//现规约版本号
-	int lastCheckChange;//上次检查变化时间
+	//int lastCheckChange;//上次检查变化时间
 
-	void getC2RtuInfo();
-	void getC5RtuInfo();
+	//void getC2RtuInfo();
+	//void getC5RtuInfo();
 
 	int m_askFrameType;
 
@@ -255,30 +271,30 @@ public:
 
 	int m_lastReqTime;//上次取报文时间
 
-	int m_lastHertTime;//上次心跳时间
-	int m_lastcbdataTime;//上次dtu回报文时间
+	//int m_lastHertTime;//上次心跳时间
+	//int m_lastcbdataTime;//上次dtu回报文时间
 	
-	char m_devid[IDLEN];//设备注册号
-	char ghearthead[IDLEN];//心跳报文内容
-	char gregistehead[IDLEN];//注册报文头
-	char gregistetail[IDLEN];//注册报文尾
-	char gcbheartsucceed[IDLEN];//心跳注册成功返回报文
-	char gcbheartfail[IDLEN];//心跳注册失败返回报文
+	//char m_devid[IDLEN];//设备注册号
+	//char ghearthead[IDLEN];//心跳报文内容
+	//char gregistehead[IDLEN];//注册报文头
+	//char gregistetail[IDLEN];//注册报文尾
+	//char gcbheartsucceed[IDLEN];//心跳注册成功返回报文
+	//char gcbheartfail[IDLEN];//心跳注册失败返回报文
 
-	uint8  gshellheadbuf[32];
-	uint8  gshelltailbuf[32];
+	//uint8  gshellheadbuf[32];
+	//uint8  gshelltailbuf[32];
 
 	int gisregiste;//是否有注册
 	int gisheartbeat;//是否有心跳报文
-	int grutInterval;//RTU时间间隔
+	//int grutInterval;//RTU时间间隔
 	int gcbtimeout;//返回超时时间
 	int greqInterval;//请求时间间隔
 	char gregisterhorl;//寄存器地址高低位规则：h高位在前、l低位在前
 	char gcheckhorl;//校验码高低位规则：h高位在前、l低位在前
-	int gheartbeatInterval;//心跳报文间隔
-	int gcbheartbeat;//心跳报文反馈,是否有反馈回来
-	int gdevonline;//设备ips是否在线
-	int gdtuonline;//dtu是否在线
+	//int gheartbeatInterval;//心跳报文间隔
+	//int gcbheartbeat;//心跳报文反馈,是否有反馈回来
+	//int gdevonline;//设备ips是否在线
+	//int gdtuonline;//dtu是否在线
 	int gshellheadLen;//外壳头内容长度
 	int gshelltailLen;//外壳尾内容长度
 
@@ -304,7 +320,7 @@ public:
 	int m_yxsectionNum;
 
 
-	char gbigid[CHARLEN];//从规约配置数据库读取
+	char gbigid[CHARLEN];//从规约配置读取
 	char gbigname[CHARLEN];
 
 	int gcuryc;
@@ -315,7 +331,7 @@ public:
 	float fResult;
 
 	sqlite3 * pDB;
-	C5DB m_c5db;
+//	C5DB m_c5db;
 
 };
 	static int str_to_hex(char *string, unsigned char *cbuf, int len);
@@ -323,7 +339,5 @@ public:
 	int sixteen2int(uint8* buf,int len, char horl);
 	int sixteen2uint(uint8* buf,int len, char horl);
 
-
-	
 
 #endif
