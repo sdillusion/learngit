@@ -110,6 +110,7 @@ struct ycsection{
 	int hasnan;//是否有无效值
 	int nankey;//无效值
 	int nanvalue;//无效值返回数值
+	int funcode;//功能编码   默认03
 };
 
 struct yctype{
@@ -141,6 +142,7 @@ struct yxsection{
 	char desc[CHARLEN];
 	int cbdatalenbit;
 	char cbdatahorl;
+	int funcode;//功能编码   默认03
 };
 struct yxtype{
 	yxsection m_yxss[SECTIONNUM];
@@ -177,6 +179,7 @@ struct ddsection{
 	int hasnan;//是否有无效值
 	int nankey;//无效值
 	int nanvalue;//无效值返回数值
+	int funcode;//功能编码   默认03
 };
 struct ddtype{
 	ddsection m_ddss[SECTIONNUM];
@@ -234,6 +237,7 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CModbusConfigDialogDlg)
 	enum { IDD = IDD_MODBUSCONFIGDIALOG_DIALOG };
+	CComboBox	m_combo_funcode;
 	CComboBox	m_combo_bigtype;
 	CComboBox	m_combo_company;
 	CButton	m_check_bigused;
@@ -275,6 +279,7 @@ public:
 	CString	m_edit_remark_val;
 	int		m_combo_company_val;
 	int		m_combo_bigtype_val;
+	CString	m_combo_funcode_val;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
@@ -477,6 +482,8 @@ protected:
 	afx_msg void OnSelchangeComboBigtype();
 	afx_msg void OnButtonAddcompany();
 	afx_msg void OnChangeEditCbdatalenbit();
+	afx_msg void OnEditchangeComboFuncode();
+	afx_msg void OnSelchangeComboFuncode();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

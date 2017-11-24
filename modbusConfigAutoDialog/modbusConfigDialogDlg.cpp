@@ -85,6 +85,7 @@ CModbusConfigDialogDlg::CModbusConfigDialogDlg(CWnd* pParent /*=NULL*/)
 	m_edit_remark_val = _T("");
 	m_combo_company_val = -1;
 	m_combo_bigtype_val = -1;
+	m_combo_funcode_val = _T("03");
 	//}}AFX_DATA_INIT
 	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -98,6 +99,7 @@ void CModbusConfigDialogDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CModbusConfigDialogDlg)
+	DDX_Control(pDX, IDC_COMBO_FUNCODE, m_combo_funcode);
 	DDX_Control(pDX, IDC_COMBO_BIGTYPE, m_combo_bigtype);
 	DDX_Control(pDX, IDC_COMBO_COMPANY, m_combo_company);
 	DDX_Control(pDX, IDC_CHECK_BIGUSED, m_check_bigused);
@@ -134,6 +136,7 @@ void CModbusConfigDialogDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_REMARK, m_edit_remark_val);
 	DDX_CBIndex(pDX, IDC_COMBO_COMPANY, m_combo_company_val);
 	DDX_CBIndex(pDX, IDC_COMBO_BIGTYPE, m_combo_bigtype_val);
+	DDX_CBString(pDX, IDC_COMBO_FUNCODE, m_combo_funcode_val);
 	//}}AFX_DATA_MAP
 }
 
@@ -176,6 +179,8 @@ BEGIN_MESSAGE_MAP(CModbusConfigDialogDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_BIGUSED, OnCheckBigused)
 	ON_EN_CHANGE(IDC_EDIT_REMARK, OnChangeEditRemark)
 	ON_EN_CHANGE(IDC_EDIT_CBDATALENBIT, OnChangeEditCbdatalenbit)
+	ON_CBN_EDITCHANGE(IDC_COMBO_FUNCODE, OnEditchangeComboFuncode)
+	ON_CBN_SELCHANGE(IDC_COMBO_FUNCODE, OnSelchangeComboFuncode)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -784,6 +789,7 @@ void CModbusConfigDialogDlg::clearUI(){
 	m_check_hasnan_val = false;
 	m_edit_nankey_val = 0;
 	m_edit_nanvalue_val = 0;
+	m_combo_funcode_val = "03";
 	UpdateData(FALSE);
 	initListCtrl(m_edit_datanum_val);
 }
@@ -800,6 +806,7 @@ void CModbusConfigDialogDlg::refreshUI(){
 }
 
 void CModbusConfigDialogDlg::refreshUIyc(){
+	m_combo_funcode_val.Format("%d", gYcType.m_ycss[m_group_sel].funcode);
 	m_combo_addr_val.Format("%d", gYcType.m_ycss[m_group_sel].addr);
 	m_edit_startindex_val = gYcType.m_ycss[m_group_sel].startindex;
 	m_edit_cbdatalenbit_val = gYcType.m_ycss[m_group_sel].cbdatalenbit ? gYcType.m_ycss[m_group_sel].cbdatalenbit : 1;
@@ -829,6 +836,7 @@ void CModbusConfigDialogDlg::refreshUIyc(){
 
 void CModbusConfigDialogDlg::refreshUIyx(){
 	m_edit_reqnum_val = gYxType.m_yxss[m_group_sel].yxnum;
+	m_combo_funcode_val.Format("%d", gYxType.m_yxss[m_group_sel].funcode);
 	m_combo_addr_val.Format("%d", gYxType.m_yxss[m_group_sel].addr);
 	m_edit_startindex_val = gYxType.m_yxss[m_group_sel].startindex;
 	m_edit_datanum_val = gYxType.m_yxss[m_group_sel].yxslen;
@@ -847,6 +855,7 @@ void CModbusConfigDialogDlg::refreshUIyx(){
 }
 
 void CModbusConfigDialogDlg::refreshUIdd(){
+	m_combo_funcode_val.Format("%d", gDdType.m_ddss[m_group_sel].funcode);
 	m_combo_addr_val.Format("%d", gDdType.m_ddss[m_group_sel].addr);
 	m_edit_startindex_val = gDdType.m_ddss[m_group_sel].startindex;
 	m_edit_cbdatalenbit_val = gDdType.m_ddss[m_group_sel].cbdatalenbit ? gDdType.m_ddss[m_group_sel].cbdatalenbit :1;
@@ -1005,6 +1014,7 @@ void CModbusConfigDialogDlg::saveBigConfig(){
 }
 
 void CModbusConfigDialogDlg::saveYcConfig(){
+	gYcType.m_ycss[m_group_sel].funcode = atoi(m_combo_funcode_val);
 	gYcType.m_ycss[m_group_sel].addr = atoi(m_combo_addr_val);
 	gYcType.m_ycss[m_group_sel].startindex = m_edit_startindex_val;
 	gYcType.m_ycss[m_group_sel].cbdatalenbit = m_edit_cbdatalenbit_val;
@@ -1070,6 +1080,7 @@ void CModbusConfigDialogDlg::saveYcConfig(){
 }
 
 void CModbusConfigDialogDlg::saveYxConfig(){
+	gYxType.m_yxss[m_group_sel].funcode = atoi(m_combo_funcode_val);
 	gYxType.m_yxss[m_group_sel].addr = atoi(m_combo_addr_val);
 	gYxType.m_yxss[m_group_sel].startindex = m_edit_startindex_val;
 	gYxType.m_yxss[m_group_sel].yxnum = m_edit_reqnum_val;
@@ -1130,6 +1141,7 @@ void CModbusConfigDialogDlg::saveYxConfig(){
 }
 
 void CModbusConfigDialogDlg::saveDdConfig(){
+	gDdType.m_ddss[m_group_sel].funcode = atoi(m_combo_funcode_val);
 	gDdType.m_ddss[m_group_sel].addr = atoi(m_combo_addr_val);
 	gDdType.m_ddss[m_group_sel].startindex = m_edit_startindex_val;
 	gDdType.m_ddss[m_group_sel].cbdatalenbit = m_edit_cbdatalenbit_val;
@@ -1258,7 +1270,8 @@ void CModbusConfigDialogDlg::creatYcGroupTable(){
 	sqlStr += "F2002_DESC char(32) NOT NULL,	 F2002_ADDR int NOT NULL, F2002_RXDATALEN int NOT NULL,";
 	sqlStr += "F2002_DATALENHL char NOT NULL,F2002_METHOD int NOT NULL, F2002_SORT int IDENTITY(1,1), F2002_RXDATALENBIT int NOT NULL, ";
 	sqlStr += "F2002_RXDATALENBITHL char NOT NULL, F2002_HASINVALIDVAL int NOT NULL,";
-	sqlStr += "F2002_INVALIDIFVAL int NOT NULL, F2002_INVALIDREVAL int NOT NULL, primary key(F2002_CODE, F2001_CODE));";
+	sqlStr += "F2002_INVALIDIFVAL int NOT NULL, F2002_INVALIDREVAL int NOT NULL, ";
+	sqlStr += "F2002_FUNCODE int NOT NULL, primary key(F2002_CODE, F2001_CODE));";
 	int nRes = sqlite3_exec(pDB, sqlStr.c_str(), 0, 0, &cErrMsg);
 	if (nRes != SQLITE_OK){
 		MessageBox("生成数据库ycGroup表失败!");
@@ -1313,7 +1326,7 @@ void CModbusConfigDialogDlg::insertDataYcToDB(){
 	}
 */
 
-	char* ycGroupHeadName = "F2001_CODE,F2002_CODE,F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL";
+	char* ycGroupHeadName = "F2001_CODE,F2002_CODE,F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL,F2002_FUNCODE";
 	char* ycHeadName = "F2001_CODE,F2002_CODE,F2003_CODE,F2003_DESC,F2003_COE,F2003_USED,F2003_POINTNO";
 	for(int i = 0; i < gYcType.ycseclen; i++){
 		int ycslen = gYcType.m_ycss[i].ycslen;
@@ -1326,12 +1339,12 @@ void CModbusConfigDialogDlg::insertDataYcToDB(){
 		for(int j = 0; j < ycslen; j++){
 			CString str;
 			if(j==0){
-				str.Format("INSERT INTO TB2002_YCGROUP (%s) VALUES ('%s','%s','%s',%d,%d,'%c',%d,%d,'%c',%d,%d,%d)",
+				str.Format("INSERT INTO TB2002_YCGROUP (%s) VALUES ('%s','%s','%s',%d,%d,'%c',%d,%d,'%c',%d,%d,%d,%d)",
 					ycGroupHeadName,
 					vbig.at(m_type_sel).id, gYcType.m_ycss[i].id, gYcType.m_ycss[i].desc, gYcType.m_ycss[i].addr,
 					gYcType.m_ycss[i].ycdatalen,  gYcType.m_ycss[i].horl, gYcType.m_ycss[i].ycs[j].method,
 					gYcType.m_ycss[i].cbdatalenbit, gYcType.m_ycss[i].cbdatahorl, gYcType.m_ycss[i].hasnan,
-					gYcType.m_ycss[i].nankey, gYcType.m_ycss[i].nanvalue);
+					gYcType.m_ycss[i].nankey, gYcType.m_ycss[i].nanvalue, gYcType.m_ycss[i].funcode);
 				
 				char pstr[512];
 				strcpy(pstr,str);
@@ -1385,7 +1398,7 @@ void CModbusConfigDialogDlg::creatYxGroupTable(){
 	std::string sqlStr = "create table TB2004_YXGROUP (F2004_CODE char(32) NOT NULL, F2001_CODE char(32) NOT NULL, ";
 	sqlStr += "F2004_DESC char(32) NOT NULL, F2004_ADDR int NOT NULL, F2004_DATALENHL char NOT NULL,F2004_METHOD int NOT NULL,";
 	sqlStr += "F2004_SORT int IDENTITY(1,1), F2004_YXNUM int NOT NULL, F2004_RXDATALENBIT int NOT NULL,";
-	sqlStr += "F2004_RXDATALENBITHL char NOT NULL, primary key(F2004_CODE, F2001_CODE));";
+	sqlStr += "F2004_RXDATALENBITHL char NOT NULL,F2004_FUNCODE int NOT NULL, primary key(F2004_CODE, F2001_CODE));";
 	int nRes = sqlite3_exec(pDB , sqlStr.c_str() ,0 ,0, &cErrMsg);
 	if (nRes != SQLITE_OK)
 	{
@@ -1439,7 +1452,7 @@ void CModbusConfigDialogDlg::insertDataYxToDB(){
 		}
 	}*/
 
-	char * yxgroupHeadName = "F2001_CODE,F2004_CODE,F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL";
+	char * yxgroupHeadName = "F2001_CODE,F2004_CODE,F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL,F2004_FUNCODE";
 	char * yxHeadName = "F2001_CODE,F2004_CODE,F2005_CODE,F2005_DESC,F2005_USED,F2005_POINTNO";
 	for(int i = 0; i < gYxType.yxseclen; i++){
 		int yxslen = gYxType.m_yxss[i].yxslen;
@@ -1451,12 +1464,12 @@ void CModbusConfigDialogDlg::insertDataYxToDB(){
 		for(int j = 0; j < yxslen; j++){
 			CString str;
 			if(j==0){
-				str.Format(_T("INSERT INTO TB2004_YXGROUP (%s) VALUES ('%s','%s','%s',%d,'%c',%d,%d,%d,'%c')"),
+				str.Format(_T("INSERT INTO TB2004_YXGROUP (%s) VALUES ('%s','%s','%s',%d,'%c',%d,%d,%d,'%c',%d)"),
 					yxgroupHeadName,
 					vbig.at(m_type_sel).id, gYxType.m_yxss[i].id, gYxType.m_yxss[i].desc, gYxType.m_yxss[i].addr,
 					gYxType.m_yxss[i].horl, gYxType.m_yxss[i].method, 
 					gYxType.m_yxss[i].yxnum, gYxType.m_yxss[i].cbdatalenbit,
-					gYxType.m_yxss[i].cbdatahorl);
+					gYxType.m_yxss[i].cbdatahorl, gYxType.m_yxss[i].funcode);
 				//if(!c5db.executeSQL(str)){
 				//	m_errorNum++;
 				//	MessageBox("MSSQL添加yxgroup表数据失败！"); 
@@ -1518,7 +1531,8 @@ void CModbusConfigDialogDlg::creatDdGroupTable(){
 	sqlStr += "F2006_DESC char(32) NOT NULL, F2006_ADDR int NOT NULL, F2006_RXDATALEN int NOT NULL,";
 	sqlStr += "F2006_DATALENHL char NOT NULL, F2006_METHOD int NOT NULL, F2006_SORT int IDENTITY(1,1),";
 	sqlStr += "F2006_RXDATALENBIT int NOT NULL, F2006_RXDATALENBITHL char NOT NULL, F2006_HASINVALIDVAL int NOT NULL,";
-	sqlStr += "F2006_INVALIDIFVAL int NOT NULL, F2006_INVALIDREVAL int NOT NULL, primary key(F2006_CODE, F2001_CODE));";
+	sqlStr += "F2006_INVALIDIFVAL int NOT NULL, F2006_INVALIDREVAL int NOT NULL, ";
+	sqlStr += "F2006_FUNCODE int NOT NULL, primary key(F2006_CODE, F2001_CODE));";
 	int nRes = sqlite3_exec(pDB , sqlStr.c_str() ,0 ,0, &cErrMsg);
 	if (nRes != SQLITE_OK)
 	{
@@ -1573,7 +1587,7 @@ void CModbusConfigDialogDlg::insertDataDdToDB(){
 	}
 	*/
 
-	char * ddGroupHeadName = "F2001_CODE,F2006_CODE,F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL";
+	char * ddGroupHeadName = "F2001_CODE,F2006_CODE,F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL,F2006_FUNCODE";
 	char * ddHeadName = "F2001_CODE,F2006_CODE,F2007_CODE,F2007_DESC,F2007_COE,F2007_USED,F2007_POINTNO";
 	for(int i = 0; i < gDdType.ddseclen; i++){
 		int ddslen = gDdType.m_ddss[i].ddslen;
@@ -1585,12 +1599,12 @@ void CModbusConfigDialogDlg::insertDataDdToDB(){
 		for(int j = 0; j < ddslen; j++){
 			CString str;
 			if(j==0){
-				str.Format("INSERT INTO TB2006_DDGROUP (%s) VALUES ('%s','%s','%s',%d,%d,'%c',%d,%d,'%c',%d,%d,%d)",
+				str.Format("INSERT INTO TB2006_DDGROUP (%s) VALUES ('%s','%s','%s',%d,%d,'%c',%d,%d,'%c',%d,%d,%d,%d)",
 					ddGroupHeadName,
 					vbig.at(m_type_sel).id, gDdType.m_ddss[i].id, gDdType.m_ddss[i].desc, gDdType.m_ddss[i].addr, 
 					 gDdType.m_ddss[i].dddatalen,  gDdType.m_ddss[i].horl,
 					gDdType.m_ddss[i].dds[j].method, gDdType.m_ddss[i].cbdatalenbit, gDdType.m_ddss[i].cbdatahorl,
-					gDdType.m_ddss[i].hasnan, gDdType.m_ddss[i].nankey, gDdType.m_ddss[i].nanvalue);
+					gDdType.m_ddss[i].hasnan, gDdType.m_ddss[i].nankey, gDdType.m_ddss[i].nanvalue, gDdType.m_ddss[i].funcode);
 				//if(!c5db.executeSQL(str)){
 				//	m_errorNum++;
 				//	MessageBox("MSSQL添加ddgroup表数据失败！"); 
@@ -1729,6 +1743,20 @@ void CModbusConfigDialogDlg::checkIsChanged(){
 	return;
 }
 
+void CModbusConfigDialogDlg::OnEditchangeComboFuncode() 
+{
+	// TODO: Add your control notification handler code here
+	gIsChanged = true;
+	saveConfig();
+}
+
+void CModbusConfigDialogDlg::OnSelchangeComboFuncode() 
+{
+	// TODO: Add your control notification handler code here
+	gIsChanged = true;
+	saveConfig();
+}
+
 void CModbusConfigDialogDlg::OnEditchangeComboAddr() 
 {
 	// TODO: Add your control notification handler code here
@@ -1774,7 +1802,11 @@ void CModbusConfigDialogDlg::OnChangeEditReqnum()
 	
 	// TODO: Add your control notification handler code here
 	gIsChanged = true;
-	saveConfig();
+	CString tem;
+	m_edit_nankey.GetWindowText(tem);
+	if(tem != ""){
+		saveConfig();
+	}
 }
 
 void CModbusConfigDialogDlg::OnChangeEditCbdatalenbit() 
@@ -3180,5 +3212,7 @@ void CModbusConfigDialogDlg::OnButtonAddcompany()
 	}
 }
 */
+
+
 
 

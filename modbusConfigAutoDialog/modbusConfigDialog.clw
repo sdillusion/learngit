@@ -13,8 +13,8 @@ Class1=CModbusConfigDialogApp
 Class2=CModbusConfigDialogDlg
 
 ResourceCount=3
-Resource1=IDD_MODBUSCONFIGDIALOG_DIALOG
-Resource2=IDD_COMPANYDIALOG
+Resource1=IDD_COMPANYDIALOG
+Resource2=IDD_MODBUSCONFIGDIALOG_DIALOG
 Resource3=IDD_DIALOG_LOGIN
 
 [CLS:CModbusConfigDialogApp]
@@ -30,12 +30,12 @@ HeaderFile=modbusConfigDialogDlg.h
 ImplementationFile=modbusConfigDialogDlg.cpp
 Filter=D
 VirtualFilter=dWC
-LastObject=IDC_EDIT_CBDATALENBIT
+LastObject=IDC_COMBO_FUNCODE
 
 [DLG:IDD_MODBUSCONFIGDIALOG_DIALOG]
 Type=1
 Class=CModbusConfigDialogDlg
-ControlCount=68
+ControlCount=70
 Control1=IDC_BUTTON_ADDGROUP,button,1342242816
 Control2=IDC_LIST_GROUP,listbox,1352728833
 Control3=IDC_STATIC,static,1342308352
@@ -104,6 +104,8 @@ Control65=IDC_STATIC,static,1073872896
 Control66=IDC_COMBO_COMPANY,combobox,1075904515
 Control67=IDC_COMBO_BIGTYPE,combobox,1075904515
 Control68=IDC_BUTTON_ADDCOMPANY,button,1073807360
+Control69=IDC_STATIC,static,1342308352
+Control70=IDC_COMBO_FUNCODE,combobox,1344339970
 
 [DLG:IDD_COMPANYDIALOG]
 Type=1

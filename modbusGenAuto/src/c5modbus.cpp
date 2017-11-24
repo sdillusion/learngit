@@ -320,7 +320,8 @@ void CC5Modbus::RequestYc()
 
 	uint8 buf[64];
 	buf[0] = rtuadd;
-	buf[1] = 0x03;
+	//buf[1] = 0x03;
+	buf[1] = ycsec.funcode;
 	if(gregisterhorl == 'l'){
 		buf[3] = ycsec.addr/256;
 		buf[2] = ycsec.addr%256;
@@ -381,7 +382,8 @@ void CC5Modbus::RequestYx()
 
 	uint8	buf[64];
 	buf[0] = rtuadd;
-	buf[1] = 0x03;
+	//buf[1] = 0x03;
+	buf[1] = yxsec.funcode;
 	if(gregisterhorl == 'l'){
 		buf[3] = yxsec.addr/256;
 		buf[2] = yxsec.addr%256;
@@ -446,7 +448,8 @@ void CC5Modbus::RequestDD(){
 
 	uint8 buf[64];
 	buf[0] = rtuadd;
-	buf[1] = 0x03;
+	//buf[1] = 0x03;
+	buf[1] = ddsec.funcode;
 	if(gregisterhorl == 'l'){
 		buf[3] = ddsec.addr/256;
 		buf[2] = ddsec.addr%256;
@@ -1138,6 +1141,7 @@ void CC5Modbus::ycGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		//Çå¿Õvector
 		vector<ycstruct>().swap(m_ycss[ycssindex].ycs);
 
+		m_ycss[ycssindex].funcode = atoi(argv[offset + 12]);
 		m_ycss[ycssindex].addr = atoi(argv[offset + 3]);
 		m_ycss[ycssindex].startindex = 0;
 		m_ycss[ycssindex].ycdatalen = atoi(argv[offset + 4]);
@@ -1195,6 +1199,7 @@ void CC5Modbus::yxGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		//Çå¿Õvector
 		vector<yxstruct>().swap(m_yxss[yxssindex].yxs);
 
+		m_yxss[yxssindex].funcode = atoi(argv[offset + 9]);
 		m_yxss[yxssindex].addr = atoi(argv[offset + 3]);
 		m_yxss[yxssindex].startindex =  0;
 		
@@ -1250,6 +1255,7 @@ void CC5Modbus::ddGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		//Çå¿Õvector
 		vector<ddstruct>().swap(m_ddss[ddssindex].dds);
 
+		m_ddss[ddssindex].funcode = atoi(argv[offset + 12]);
 		m_ddss[ddssindex].addr = atoi(argv[offset + 3]);
 		m_ddss[ddssindex].startindex =  0;
 		m_ddss[ddssindex].dddatalen = atoi(argv[offset + 4]);

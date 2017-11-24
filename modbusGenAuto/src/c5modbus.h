@@ -68,6 +68,7 @@ struct ycsection{
 	int hasnan;//是否有无效值
 	int nankey;//无效值
 	int nanvalue;//无效值返回数值
+	int funcode;//功能编码
 };
 
 struct yxstruct{
@@ -94,6 +95,7 @@ struct yxsection{
 	int cbdatalenbit;
 	char horl;
 	char cbdatahorl;//返回数据值高低位
+	int funcode;//功能编码
 };
 
 struct ddstruct{
@@ -124,6 +126,7 @@ struct ddsection{
 	int hasnan;//是否有无效值
 	int nankey;//无效值
 	int nanvalue;//无效值返回数值
+	int funcode;//功能编码
 };
 
 class  CC5Modbus: public CProtocol
