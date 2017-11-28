@@ -117,21 +117,9 @@ void CC5Modbus::Init(S_PROTOCOLCFG * pcfg )
 	nowBigid = pLink->GetAllDataScanInterval();
 	greqInterval = pLink->GetKwhScanInterval();
 	m_lastReqTime = m_lastSendTime = GetNowSecond();
-	//m_lastcbdataTime = lastCheckChange = GetNowSecond();
-	//m_lastHertTime = 0;
-	//gdevonline = 0;
-	//gcbheartbeat = 0;
-	//gdtuonline = 0;
 
-	
 	if(m_timeOut < 1 || m_timeOut > 1000)
 		m_timeOut = 3;
-
-	//greqInterval = m_timeOut/100 * 1;//前两位为周期
-	//m_timeOut = m_timeOut % 100 * 1;//后两位为超时时间
-
-	//getC2RtuInfo();
-	//isSendBuf = 1;//初始化时候不做检查判断，改为默认的发送报文
 
 	char szapipath[MAX_PATH] = {0};//
 
@@ -146,7 +134,6 @@ void CC5Modbus::Init(S_PROTOCOLCFG * pcfg )
 	char dbBasePath[128];
 	char dbPath[128];
 	sprintf(dbBasePath, "./%s.db", pPara);
-	//sprintf(dbPath, "./%s%d.db", pPara, nowBigid);
 	sprintf(dbPath, "./%s_%d.db", pPara, rtuno);
 	CopyFile(dbBasePath, dbPath, false);
 
@@ -203,7 +190,6 @@ void CC5Modbus::Init(S_PROTOCOLCFG * pcfg )
 			LOG_INFORMATION,
 			"规约初始化结束 rtu:%d", rtuno);
 	#endif
-	//_CrtDumpMemoryLeaks();
 }
 
 //
@@ -218,37 +204,13 @@ sint32 CC5Modbus::RxProc()
 sint32 CC5Modbus::TxProc()
 {
 	int nowtime;
-	//如果有改变则暂停发送报文
-	/*
-	if(isSendBuf == 0){
-		nowtime = GetNowSecond();
-		//当超过时限时发送心跳激活通道
-		if(nowtime - lastCheckChange >= CHECKCHANGEINTERVAL){
-			if(IsNeedToSendHeartBeat(nowtime)){
-				SendHeartBeat();
-			}
-		}
-		return 0;
-	}
-	*/
 	nowtime = GetNowSecond();
 	
-	//if(nowtime - lastCheckChange > CHECKCHANGEINTERVAL){
-	//	checkChange();
-	//}
-
-	//if(IsNeedToSendHeartBeat(nowtime)){
-	//	SendHeartBeat();
-	//}
 	
 	E_RAW_ComStat coms = pLink->GetCommStatus();
 	if( coms != CMST_TX_CNT && coms != CMST_NORMAL){
 		return 0;
 	}
-
-//	if((!gdevonline || !gcbheartbeat) && gisheartbeat){
-//		return 0;
-//	}
 
 	if(nowtime - m_lastReqTime < greqInterval){
 		return 0;
@@ -320,7 +282,6 @@ void CC5Modbus::RequestYc()
 
 	uint8 buf[64];
 	buf[0] = rtuadd;
-	//buf[1] = 0x03;
 	buf[1] = ycsec.funcode;
 	if(gregisterhorl == 'l'){
 		buf[3] = ycsec.addr/256;
@@ -382,7 +343,6 @@ void CC5Modbus::RequestYx()
 
 	uint8	buf[64];
 	buf[0] = rtuadd;
-	//buf[1] = 0x03;
 	buf[1] = yxsec.funcode;
 	if(gregisterhorl == 'l'){
 		buf[3] = yxsec.addr/256;
@@ -448,7 +408,6 @@ void CC5Modbus::RequestDD(){
 
 	uint8 buf[64];
 	buf[0] = rtuadd;
-	//buf[1] = 0x03;
 	buf[1] = ddsec.funcode;
 	if(gregisterhorl == 'l'){
 		buf[3] = ddsec.addr/256;
@@ -489,173 +448,18 @@ void CC5Modbus::RequestDD(){
 }
 
 void CC5Modbus::sendMSG(uint8* buf, int dataLen){
-	//if(gisregiste){
-	//	int buflen = addRegHead(buf, dataLen);
-	//	pLink->RegisterFrmCode(RAW_CODEDIR_DOWN,(char *)buf,buflen);
-	//	pTxBuf->Write(buf,buflen);
-	//}else{
-		pLink->RegisterFrmCode(RAW_CODEDIR_DOWN,(char *)buf,dataLen);
-		pTxBuf->Write(buf,dataLen);
-	//}
+	pLink->RegisterFrmCode(RAW_CODEDIR_DOWN,(char *)buf,dataLen);
+	pTxBuf->Write(buf,dataLen);
 	pLink->SetCommStatus(CMST_RX_CNT);
 	m_lastSendTime = GetNowSecond();
 }
-/*
-int CC5Modbus::addRegHead(uint8 *buf, int buflen){
-	int gregisteheadlen = strlen(gregistehead);
-	int gregistetaillen = strlen(gregistetail);
-	int gRegHeadLen = (gregisteheadlen-1)/2+1 + (gregistetaillen-1)/2+1 + 1 + IDMAXLEN;
-	int i = 0;
-	for(i = buflen - 1; i >= 0; i--){
-		buf[gRegHeadLen + i] = buf[i];
-	}
 
-	
-	str_to_hex(gregistehead,buf,gregisteheadlen);
-
-	int strLen = strlen(gbigname);
-	buf[(gregisteheadlen-1)/2+1] = strLen;
-
-	for(i = 0; i < IDMAXLEN; i++){
-		buf[i + (gregisteheadlen-1)/2+1 + 1]=0;
-		if(i<strLen)
-		{
-			buf[i + (gregisteheadlen-1)/2+1 + 1]= gbigname[i];
-		}
-	}
-
-	str_to_hex(gregistetail,buf + (gregisteheadlen-1)/2+1 + IDMAXLEN + 1, gregistetaillen);
-
-	return buflen + gRegHeadLen;
-}
-
-
-bool CC5Modbus::CheckHeartBeat(){
-	bool result = false;
-
-	uint8  buf[2048] = {0};
-	uint8  gcbheartsucceedbuf[2048];
-	uint8  gcbheartfailbuf[2048];
-	int datalen = 0 ,datanum =0;
-
-	int buflen = pRxBuf->GetReadableSize();
-	int nowtime = GetNowSecond();
-
-	if (buflen < 4){
-		if(nowtime-m_lastHertTime>gheartbeatInterval){
-			pRxBuf->Move(buflen);
-			//pLink->SetCommStatus(CMST_TX_CNT);
-		}
-		return false;
-	}
-	datalen = pRxBuf->Read(buf,buflen,DEF_BUFF_NOMOVE);
-	if(datalen != 4){
-		pRxBuf->Move(buflen);
-		//pLink->SetCommStatus(CMST_NORMAL);
-		gdevonline = 0;
-		return false;
-	}
-
-	int gcbheartsucceedlen = strlen(gcbheartsucceed);
-	str_to_hex(gcbheartsucceed,gcbheartsucceedbuf,gcbheartsucceedlen);
-	int gcbheartfaillen = strlen(gcbheartfail);
-	str_to_hex(gcbheartfail,gcbheartfailbuf,gcbheartfaillen);
-	
-	int i = 0;
-	int l = 0;
-	for(i = 0, l = gcbheartfaillen/2; i < l; i++){
-		result = true;
-		if(buf[i] != gcbheartfailbuf[i]){
-			result = false;
-			break;
-		}
-	}
-	if(result){
-		pLink->RegisterFrm(FRAME_RX_SUC);
-		pLink->RegisterFrmCode(RAW_CODEDIR_UP,(char *)buf,datalen);
-		pRxBuf->Move(buflen);
-		//pLink->SetCommStatus(CMST_NORMAL);
-		gcbheartbeat = 1;
-		gdevonline = 0;
-		return true;//返回发现心跳报文
-	}
-	
-	for(i = 0, l = gcbheartsucceedlen/2; i < l; i++){
-		result = true;
-		if(buf[i] != gcbheartsucceedbuf[i]){
-			result = false;
-			break;
-		}
-	}
-	pLink->RegisterFrm(FRAME_RX_SUC);
-	pLink->RegisterFrmCode(RAW_CODEDIR_UP,(char *)buf,datalen);
-	pRxBuf->Move(buflen);
-	//pLink->SetCommStatus(CMST_NORMAL);
-	if(result){
-		gcbheartbeat = 1;
-		gdevonline = 1;
-		return true;//返回发现心跳报文
-	}
-
-	return false;//返回没有发现心跳报文
-}
-
-bool CC5Modbus::IsNeedToSendHeartBeat(int now){
-	if(!gisheartbeat){
-		return false;
-	}
-	if(now - m_lastcbdataTime > gheartbeatInterval  && now - m_lastHertTime > gheartbeatInterval && now - m_lastSendTime > 1){
-		return true;
-	}
-
-	//if(now - m_lastSendTime > gheartbeatInterval){
-	//	return true;
-	//}
-	return false;
-}
-
-void CC5Modbus::SendHeartBeat(){
-	int nowtime = GetNowSecond();
-
-	sint32 rtuno = pLink->GetRtuNo();
-	sint32 rtuadd = pRtu->GetRtuAddr(rtuno);
-
-	uint8	buf[64];
-	int gheartheadlen = strlen(ghearthead);
-	str_to_hex(ghearthead,buf,gheartheadlen);
-
-	int dataLen = gheartheadlen/2;
-	sendMSG(buf,dataLen);
-
-	gcbheartbeat = 0;
-
-	m_lastHertTime = nowtime;
-
-	return;
-}
-*/
 void CC5Modbus::ParseFrame()
 {
-	/*
-	if(gisheartbeat && !gcbheartbeat){
-		CheckHeartBeat();
-		sint32 rtuno = pLink->GetRtuNo();
-		int yxnum = pRtu->GetYxNum(rtuno);
-		PRawCtrl->PutAYx(rtuno, yxnum-2, gdevonline);
-		//pLink->SetCommStatus(CMST_TX_CNT);
-		return;
-	}
-*/
 	int nowtime = GetNowSecond();
 
 	sint32 rtuno = pLink->GetRtuNo();
 	sint32 rtuaddr = pRtu->GetRtuAddr(rtuno);
-
-	//if(gdtuonline == 1 && nowtime - m_lastcbdataTime > DTUOFFLINETIME){
-	//	gdtuonline = 0;
-	//	int yxnum = pRtu->GetYxNum(rtuno);
-	//	PRawCtrl->PutAYx(rtuno, yxnum-3, gdtuonline);
-	//}
 
 	uint8  buf[2048];
 	int datalen = 0 ,datanum =0;
@@ -715,15 +519,7 @@ void CC5Modbus::ParseFrame()
 		return ;
 	}
 
-	
-	//m_lastReqTime = nowtime;
 	ProcessBuf(buf, rtuno,  buflen,  datalen);
-	//m_lastcbdataTime = nowtime;
-	//if(gdtuonline == 0){
-	//	gdtuonline = 1;
-	//	int yxnum = pRtu->GetYxNum(rtuno);
-	//	PRawCtrl->PutAYx(rtuno, yxnum-3, gdtuonline);
-	//}
 }
 
 void CC5Modbus::ProcessBuf(uint8* buf, sint32 rtuno, int buflen, int datalen){
@@ -733,25 +529,16 @@ void CC5Modbus::ProcessBuf(uint8* buf, sint32 rtuno, int buflen, int datalen){
 	case YC_CYCLIC:
 		ProcessYc(buf, datalen);
 		gcuryc++;
-		//if(gcuryc >= m_ycsectionNum){
-		//	gcuryc = 0;
-		//}
 		break;
 	case YX_FRAME:
 	case YX_CYCLIC:
 		ProcessYx(buf, datalen);
 		gcuryx++;
-		//if(gcuryx >= m_yxsectionNum){
-		//	gcuryx = 0;
-		//}
 		break;
 	case DD_FRAME:
 	case DD_CYCLIC:
 		ProcessDD(buf, datalen);
 		gcurdd++;
-		//if(gcurdd >= m_ddsectionNum){
-		//	gcurdd = 0;
-		//}
 		break;
 	default:
 		break;
@@ -1018,24 +805,10 @@ void CC5Modbus::ProcessDD(uint8 *buf, int datalen)
 //以下为配套函数，包含查询sqlite数据库
 
 void CC5Modbus::setCommonConfig(){
-	//gcbtimeout =  4;
 	gisregiste = 0;
 	gisheartbeat = 0;//是否有心跳报文
-	//grutInterval = 3;//RTU时间间隔
-	
-	
-//	gheartbeatInterval = 12;//心跳报文间隔
-	//gcbdatalenbit = 2;//返回报文数据数量所占位数
-	
-//	strcpy(ghearthead,"eeeeeeee");//心跳报文内容
-//	strcpy(gregistehead,"eb90eb90");//注册报文头
-//	strcpy(gregistetail,"ea80ea80");//注册报文尾
-//	strcpy(gcbheartsucceed,"eeee01ee");//心跳注册成功返回报文
-//	strcpy(gcbheartfail,"eeee00ee");//心跳注册失败返回报文
-
 
 	gregisterhorl = 'h';//寄存器地址高低位规则
-	//gcbdatalenhorl = 'l';//返回数据长度高低位规则
 }
 
 std::string CC5Modbus::bigmakeSqlStr(int rtuno){
@@ -1118,7 +891,6 @@ bool CC5Modbus::ycGroupQuery(char* bigid){
 			"查询数据库ycGroup表失败，%s",cErrMsg);
 		return false;
 	}else if(nrownum < 1){
-		//m_ycsectionNum = 0;
 		kprintf(LOG_COMM,
 			DCV_LOG_MODBUS,
 			LOG_VIOLATION,
@@ -1131,7 +903,6 @@ bool CC5Modbus::ycGroupQuery(char* bigid){
 }
 
 void CC5Modbus::ycGroupResultFormat(int nrownum, int ncolnum, char** argv){
-	//m_ycsectionNum = 0;
 	for(int iRow = 1; iRow <= nrownum; iRow++){
 		int offset = ncolnum * iRow;
 
@@ -1153,7 +924,6 @@ void CC5Modbus::ycGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		m_ycss[ycssindex].hasnan = atoi(argv[offset + 9]);
 		m_ycss[ycssindex].nankey = atoi(argv[offset + 10]);
 		m_ycss[ycssindex].nanvalue = atoi(argv[offset + 11]);
-		//strcpy(m_ycss[ycssindex].desc, argv[offset + 2]);
 		strcpy(m_ycss[ycssindex].id, argv[offset + 1]);
 	}
 }
@@ -1210,7 +980,6 @@ void CC5Modbus::yxGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		m_yxss[yxssindex].horl = argv[offset + 4] ? *argv[offset + 4] : 'h';
 		m_yxss[yxssindex].cbdatahorl = argv[offset + 8] ? *argv[offset + 8] : 'h';
 		
-		//strcpy(m_yxss[yxssindex].desc, argv[offset + 2]);
 		strcpy(m_yxss[yxssindex].id, argv[offset + 1]);
 	}
 }
@@ -1267,7 +1036,6 @@ void CC5Modbus::ddGroupResultFormat(int nrownum, int ncolnum, char** argv){
 		m_ddss[ddssindex].hasnan = atoi(argv[offset + 9]);
 		m_ddss[ddssindex].nankey = atoi(argv[offset + 10]);
 		m_ddss[ddssindex].nanvalue =atoi(argv[offset + 11]);
-		//strcpy(m_ddss[ddssindex].desc, argv[offset + 2]);
 		strcpy(m_ddss[ddssindex].id, argv[offset + 1]);
 	}
 }
@@ -1287,7 +1055,6 @@ bool CC5Modbus::ycQuery(char* bigid, char* groupid, int ycssindex)
 	char **azResult;
 	char* ycHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2003_CODE) as F2003_CODE,RTRIM(F2003_DESC) as F2003_DESC,F2003_COE,F2003_USED,F2003_POINTNO";
 
-	//gYcType.ycseclen = 0;
 	CString id1 = bigid;
 	CString id2= groupid;
 	CString sqlStr;
@@ -1324,7 +1091,6 @@ void CC5Modbus::ycResultFormat(int nrownum, int ncolnum, char **argv, int ycssin
 		int ycsindex = m_ycss[ycssindex].ycslen-1;
 
 		strcpy(m_ycss[ycssindex].ycs[ycsindex].id, argv[offset + 2]);
-		//strcpy(m_ycss[ycssindex].ycs[ycsindex].desc, argv[offset + 3]);
 		m_ycss[ycssindex].ycs[ycsindex].coe = argv[offset + 4] ? atof(argv[offset + 4]) : 1.0;
 		m_ycss[ycssindex].ycs[ycsindex].used = atoi(argv[offset + 5]);
 		m_ycss[ycssindex].ycs[ycsindex].dit = (argv[offset + 6]) ? atoi(argv[offset + 6]) : -1;
@@ -1385,7 +1151,6 @@ void CC5Modbus::yxResultFormat(int nrownum, int ncolnum, char **argv, int yxssin
 		int yxsindex = m_yxss[yxssindex].yxslen-1;
 
 		strcpy(m_yxss[yxssindex].yxs[yxsindex].id, argv[offset + 2]);
-		//strcpy(m_yxss[yxssindex].yxs[yxsindex].desc, argv[offset + 3]);
 		m_yxss[yxssindex].yxs[yxsindex].used = atoi(argv[offset + 4]);
 		m_yxss[yxssindex].yxs[yxsindex].dit = (argv[offset + 5]) ? atoi(argv[offset + 5]) : -1;
 
@@ -1442,7 +1207,6 @@ void CC5Modbus::ddResultFormat(int nrownum, int ncolnum, char **argv, int ddssin
 		int ddsindex = m_ddss[ddssindex].ddslen-1;
 
 		strcpy(m_ddss[ddssindex].dds[ddsindex].id, argv[offset + 2]);
-		//strcpy(m_ddss[ddssindex].dds[ddsindex].desc, argv[offset + 3]);
 		m_ddss[ddssindex].dds[ddsindex].coe = argv[offset + 4] ? atof(argv[offset + 4]) : 1.0;
 		m_ddss[ddssindex].dds[ddsindex].used = atoi(argv[offset + 5]);
 		m_ddss[ddssindex].dds[ddsindex].dit = (argv[offset + 6]) ? atoi(argv[offset + 6]) : -1;
@@ -1452,137 +1216,6 @@ void CC5Modbus::ddResultFormat(int nrownum, int ncolnum, char **argv, int ddssin
 		m_ddss[ddssindex].dds[ddsindex].length = m_ddss[ddssindex].dddatalen;
 	}
 }
-
-/*
-void CC5Modbus::checkChange(){
-	
-	lastCheckChange = GetNowSecond();
-	int version;
-
-	char dbBasePath[128];
-	char dbPath[128];
-	sint32 rtuno = pLink->GetRtuNo();
-	sprintf(dbBasePath, "./%s.db", pPara);
-	sprintf(dbPath, "./%s_%d.db", pPara, rtuno);
-	CopyFile(dbBasePath, dbPath, false);
-
-	//打开路径采用utf-8编码
-	//如果路径中包含中文，需要进行编码转换
-	int nRes = sqlite3_open(dbPath, &pDB);
-	if (nRes != SQLITE_OK)
-	{
-	  kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_ERROR,
-			"打开数据库%s失败,",dbPath);
-	  return;
-	}
-
-	char s[12];
-	itoa(nowBigid,s,10);
-	CString ss = s;
-	char* bigHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2001_DESC) as F2001_DESC,F2001_ADDRHL,F2001_CRC,F2001_VERSION,F2001_USED,RTRIM(F2001_REMARK) as F2001_REMARK,RTRIM(F1102_CODE) as F1102_CODE";
-	CString sqlStr;
-	sqlStr.Format("select %s from TB2001_PROTOCOL where F2001_CODE = %s ", bigHeadName, ss);
-
-	//std::string bigsqlStr = bigmakeSqlStr(nowBigid);
-	char* cErrMsg;
-	int nrownum = 0, ncolnum = 0;  
-	char **azResult;
-
-	nRes = sqlite3_get_table(pDB, sqlStr.GetBuffer(0), &azResult, &nrownum, &ncolnum, &cErrMsg);
-	if (nRes != SQLITE_OK)
-	{
-		kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_ERROR,
-			"查找是否有更改时，规约配置读取失败，%s, %s  ",cErrMsg, sqlStr);
-	}else if(nrownum < 1){
-		kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_VIOLATION,
-			"查询数据库TB2001_PROTOCOL表没有数据");
-	}else{
-		//bigResultFormat(nrownum, ncolnum, azResult);
-		for(int iRow = 1; iRow <= nrownum; iRow++){
-			int offset = ncolnum * iRow;
-			version = azResult[offset + 4] ? atoi(azResult[offset + 4]) : 0;
-		}
-	}
-	sqlite3_close(pDB);
-	remove(dbPath);
-
-	if(nowVersion != version){
-		isSendBuf = 0;
-		kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_VIOLATION,
-			"C2配置改变：版本号 %d =》 %d  ", nowVersion,version);
-	}
-	nowVersion = version;
-	getC2RtuInfo();
-	
-}
-
-//获取RTU信息，并检查 bigid、bigname 是否有改变
-void CC5Modbus::getC2RtuInfo(){
-	int bigid,name;
-	char dbPath[128];
-	char* envvar = getenv("C2PLAT");
-	if( envvar == NULL ){
-		kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_ERROR,
-			"获取环境变量C2PLAT失败！   ");
-		return;
-	}
-	sprintf(dbPath, "%s/db/jskpara.db", envvar);
-
-	int nRes = sqlite3_open(dbPath, &pDB);
-
-	char* cErrMsg;
-	int nrownum = 0, ncolnum = 0;  
-	char **azResult;
-	sint32 rtuno = pLink->GetRtuNo();
-	char str[10];
-	sprintf(str, "%d", rtuno); //将100转为16进制表示的字符串。
-	std::string sqlStr = "select 装置序号,召全数据间隔,召电度间隔 from T004_装置表 where 装置序号=";
-	sqlStr += str;
-	nRes = sqlite3_get_table(pDB , sqlStr.c_str() , &azResult, &nrownum, &ncolnum, &cErrMsg);
-	if (nRes != SQLITE_OK)
-	{
-		kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_ERROR,
-			"查询数据库T004_装置表失败，%s   ",cErrMsg);
-	}else if(nrownum < 1){
-		kprintf(LOG_COMM,
-			DCV_LOG_MODBUS,
-			LOG_VIOLATION,
-			"查询数据库T004_装置表没有相关数据  ");
-	}else{
-		for(int iRow = 1; iRow <= nrownum; iRow++){
-			int offset = ncolnum * iRow;
-			bigid = azResult[offset + 1] ? atoi(azResult[offset + 1]) : 0;
-			name = azResult[offset + 2] ? atoi(azResult[offset + 2]) : 0;
-			
-			sprintf(gbigname,"%05d",name);
-			kprintf(2,8,LOG_INFORMATION,"******ID:%s", gbigname);
-			if(nowBigid != bigid || nowBigname != name){
-				isSendBuf = 0;
-				kprintf(LOG_COMM,
-					DCV_LOG_MODBUS,
-					LOG_VIOLATION,
-					"C2配置改变：规约号 %d =》 %d, 设备名 %d =》 %d  ", nowBigid,bigid,nowBigname,name);
-			}
-			nowBigname = name;
-			nowBigid = bigid;
-		}
-	}
-	sqlite3_close(pDB);
-	pDB=NULL;
-}
-*/
 
 //16进制转float
 float sixteen2float(uint8* buf, int len, char horl){

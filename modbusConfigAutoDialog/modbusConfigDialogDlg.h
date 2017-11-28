@@ -304,8 +304,6 @@ public:
 	//void refreshTypeListBox();//刷新类列表显示内容
 
 	
-	//void addItemToListGroup(int from, int num);//添加新组，仅界面
-	//void addItemToListType(int from,int num);
 	void deleteGroup(int index);
 	void deleteType(int index);
 
@@ -333,8 +331,6 @@ public:
 	void creatYxGroupTable();
 	void creatDdTable();
 	void creatDdGroupTable();
-	void creatYkTable();
-	void creatYtTable();
 
 
 	void deleteTypeInDB(char *id);
@@ -344,15 +340,11 @@ public:
 	void deleteYcInDB(char *bigid);
 	void deleteYxInDB(char *bigid);
 	void deleteDdInDB(char *bigid);
-	void deleteYkInDB(char *bigid);
-	void deleteYtInDB(char *bigid);
 
 	//void insertDataToDB();//数据库插入数据
 	void insertDataYcToDB();
 	void insertDataYxToDB();
 	void insertDataDdToDB();
-	void insertDataYkToDB();
-	void insertDataYtToDB();
 	void insertDataBigToDB(bigstruct bigstr);
 
 	void updateBigidInDB(char* oldid,char* newid);
@@ -360,45 +352,6 @@ public:
 
 	void dropAllTable();//删除所有表
 
-/*
-	void createC5DB();
-	void creatC5BigTable(C5DB c5db);
-	void creatC5YcGroupTable(C5DB c5db);
-	void creatC5YxGroupTable(C5DB c5db);
-	void creatC5DdGroupTable(C5DB c5db);
-	void creatC5YcTable(C5DB c5db);
-	void creatC5YxTable(C5DB c5db);
-	void creatC5DdTable(C5DB c5db);
-
-	void deleteTypeInC5DB(char *id, C5DB c5db);
-	void deleteYcInC5DB(char *bigid, C5DB c5db);
-	void deleteYxInC5DB(char *bigid, C5DB c5db);
-	void deleteDdInC5DB(char *bigid, C5DB c5db);
-	void deleteYcGroupInC5DB(char *bigid, C5DB c5db);
-	void deleteYxGroupInC5DB(char *bigid, C5DB c5db);
-	void deleteDdGroupInC5DB(char *bigid, C5DB c5db);
-	void clearBigInC5DB(C5DB c5db);
-
-	void insertDataToC5DB();//数据库插入数据
-	void insertDataYcToC5DB(C5DB c5db);
-	void insertDataYxToC5DB(C5DB c5db);
-	void insertDataDdToC5DB(C5DB c5db);
-	//void insertDataYcGroupToC5DB(C5DB c5db);
-	//void insertDataYxGroupToC5DB(C5DB c5db);
-	//void insertDataDdGroupToC5DB(C5DB c5db);
-	void insertDataBigToC5DB(bigstruct bigstr, C5DB c5db);
-
-	void updateBigidInC5DB(char* oldid,char* newid, C5DB c5db);
-	void updateBigDescInC5DB(char* oldid, char* newdesc, C5DB c5db);
-
-	bool C5DBycGroupQuery(char* bigid, C5DB c5db);
-	bool C5DByxGroupQuery(char* bigid, C5DB c5db);
-	bool C5DBddGroupQuery(char* bigid, C5DB c5db);
-	bool C5DBycQuery(char* bigid, char* groupid, int ycssindex, C5DB c5db);
-	bool C5DByxQuery(char* bigid, char* groupid, int yxssindex, C5DB c5db);
-	bool C5DBddQuery(char* bigid, char* groupid, int ddssindex, C5DB c5db);
-	bool C5DBbigQuery(C5DB c5db);
-*/
 	void checkIsChanged();
 	void checkDit();
 	void autoAddDit();
@@ -412,7 +365,6 @@ public:
 	int ycQuery(char* bigid, char* groupid, int ycssindex);
 	int yxQuery(char* bigid, char* groupid, int yxssindex);
 	int ddQuery(char* bigid, char* groupid, int ddssindex);
-	//int commonQuery();
 	int bigQuery();
 	int ykQuery();
 	int ytQuery();
@@ -513,7 +465,6 @@ public:
 	//C5DB m_c5db;
 	int m_errorNum;
 };
-//C5DB m_c5db = C5DB("111.231.135.99","wontex@1");
 static int CALLBACK listCtrlCompareProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 int CopyFile(char *SourceFile,char *NewFile);
 int FindIndexInMethodVector(vector<METHODSTRUCT> v, int no);
