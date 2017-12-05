@@ -1,0 +1,40 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: tcpConnectorDtu - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSP7986.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_AFXEXT" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\code\VC6\tcpConnectorDtu\src\tcp.cpp"
+]
+Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSP7986.tmp" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSP7996.tmp" with contents
+[
+libcomm.lib liblog.lib /nologo /subsystem:windows /dll /incremental:yes /pdb:"Debug/tcpConnectorDtu.pdb" /debug /machine:I386 /def:".\tcpConnectorDtu.def" /out:"Debug/tcpConnectorDtu.dll" /implib:"Debug/tcpConnectorDtu.lib" /pdbtype:sept 
+.\Debug\MyDev.obj
+.\Debug\MyLock.obj
+.\Debug\StdAfx.obj
+.\Debug\tcp.obj
+.\Debug\tcpConnectorDtu.obj
+.\Debug\tcpConnectorDtu.res
+]
+Creating command line "link.exe @C:\Users\illusion\AppData\Local\Temp\RSP7996.tmp"
+<h3>Output Window</h3>
+Compiling...
+tcp.cpp
+Linking...
+Creating command line "bscmake.exe /nologo /o"Debug/tcpConnectorDtu.bsc"  .\Debug\StdAfx.sbr .\Debug\MyDev.sbr .\Debug\MyLock.sbr .\Debug\tcp.sbr .\Debug\tcpConnectorDtu.sbr"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+tcpConnectorDtu.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
