@@ -493,12 +493,14 @@ void CC5Modbus::ParseFrame()
 		kprintf(LOG_COMM,
 			DCV_LOG_MODBUS,
 			LOG_INFORMATION,
-			"%d号终端 rtuaddr:%d 收到数据,数据长度：%d,   count:%d    ",
-			rtuno,rtuaddr,buflen,count);
+			"%d号终端 rtuaddr:%d 收到数据,数据长度：%d,   预计长度：%d, count:%d    ",
+			rtuno,rtuaddr,buflen,m_ackDataLen,count);
 	}
 
-	if (buflen < m_ackDataLen)
+	if (buflen < m_ackDataLen){
+		pRxBuf->Move(buflen);
 		return ;
+	}
 
 	if(buf[0] != rtuaddr)
 	{
@@ -874,7 +876,7 @@ void CC5Modbus::bigResultFormat(int nrownum, int ncolnum, char **argv){
 bool CC5Modbus::ycGroupQuery(char* bigid){
 	CString id = bigid;
 	m_ycsectionNum = 0;
-	char* ycGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2002_DESC) as F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL";
+	char* ycGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2002_DESC) as F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL,F2002_FUNCODE";
 
 	CString sqlStr;
 	sqlStr.Format("select %s from TB2002_YCGROUP where F2001_CODE = '%s' order by cast(F2002_CODE as int)", ycGroupHeadName, id);
@@ -931,7 +933,7 @@ void CC5Modbus::ycGroupResultFormat(int nrownum, int ncolnum, char** argv){
 bool CC5Modbus::yxGroupQuery(char* bigid){
 	m_yxsectionNum = 0;
 	CString id = bigid;
-	char * yxgroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2004_CODE) as F2004_CODE,RTRIM(F2004_DESC) as F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL";
+	char * yxgroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2004_CODE) as F2004_CODE,RTRIM(F2004_DESC) as F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL,F2004_FUNCODE";
 	
 	CString sqlStr;
 	sqlStr.Format("select %s from TB2004_YXGROUP where F2001_CODE = '%s' order by cast(F2004_CODE as int)", yxgroupHeadName, id);
@@ -987,7 +989,7 @@ void CC5Modbus::yxGroupResultFormat(int nrownum, int ncolnum, char** argv){
 bool CC5Modbus::ddGroupQuery(char* bigid){
 	m_ddsectionNum = 0;
 	CString id = bigid;
-	char * ddGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2006_DESC) as F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL";
+	char * ddGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2006_DESC) as F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL,F2006_FUNCODE";
 	CString sqlStr;
 	sqlStr.Format("select %s from TB2006_DDGROUP where F2001_CODE = '%s' order by cast(F2006_CODE as int)",ddGroupHeadName, id);
 	

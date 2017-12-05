@@ -1935,7 +1935,7 @@ int CModbusConfigDialogDlg::sqlExec(char *sql){
 int CModbusConfigDialogDlg::ycGroupQuery(char *bigid){
 	CString id = bigid;
 	gYcType.ycseclen = 0;
-	char* ycGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2002_DESC) as F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL";
+	char* ycGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2002_CODE) as F2002_CODE,RTRIM(F2002_DESC) as F2002_DESC,F2002_ADDR,F2002_RXDATALEN,F2002_DATALENHL,F2002_METHOD,F2002_RXDATALENBIT,F2002_RXDATALENBITHL,F2002_HASINVALIDVAL,F2002_INVALIDIFVAL,F2002_INVALIDREVAL,F2002_FUNCODE";
 
 	CString sqlStr;
 	sqlStr.Format("select %s from TB2002_YCGROUP where F2001_CODE = '%s' order by cast(F2002_CODE as int)", ycGroupHeadName, id);
@@ -1963,6 +1963,8 @@ void CModbusConfigDialogDlg::ycGroupResultFormat(int nrownum, int ncolnum, char 
 		gYcType.ycseclen++;
 		int ycssindex = gYcType.ycseclen-1;
 		gYcType.m_ycss[ycssindex].ycslen = 0;
+
+		gYcType.m_ycss[ycssindex].funcode = argv[offset + 12] ? atoi(argv[offset + 12]) : 3;
 		gYcType.m_ycss[ycssindex].addr = atoi(argv[offset + 3]);
 		gYcType.m_ycss[ycssindex].startindex = 0;
 		gYcType.m_ycss[ycssindex].ycdatalen = atoi(argv[offset + 4]);
@@ -1981,7 +1983,7 @@ void CModbusConfigDialogDlg::ycGroupResultFormat(int nrownum, int ncolnum, char 
 
 int CModbusConfigDialogDlg::yxGroupQuery(char *bigid){
 	CString id = bigid;
-	char * yxgroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2004_CODE) as F2004_CODE,RTRIM(F2004_DESC) as F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL";
+	char * yxgroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2004_CODE) as F2004_CODE,RTRIM(F2004_DESC) as F2004_DESC,F2004_ADDR,F2004_DATALENHL,F2004_METHOD,F2004_YXNUM,F2004_RXDATALENBIT,F2004_RXDATALENBITHL,F2004_FUNCODE";
 
 	gYxType.yxseclen = 0;
 	CString sqlStr;
@@ -2013,6 +2015,7 @@ void CModbusConfigDialogDlg::yxGroupResultFormat(int nrownum, int ncolnum, char 
 		int yxssindex = gYxType.yxseclen-1;
 		gYxType.m_yxss[yxssindex].yxslen = 0;
 
+		gYxType.m_yxss[yxssindex].funcode = argv[offset + 9] ? atoi(argv[offset + 9]) :3;
 		gYxType.m_yxss[yxssindex].addr = atoi(argv[offset + 3]);
 		gYxType.m_yxss[yxssindex].startindex =  0;
 		
@@ -2031,7 +2034,7 @@ void CModbusConfigDialogDlg::yxGroupResultFormat(int nrownum, int ncolnum, char 
 int CModbusConfigDialogDlg::ddGroupQuery(char *bigid){
 	gDdType.ddseclen = 0;
 	CString id = bigid;
-	char * ddGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2006_DESC) as F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL";
+	char * ddGroupHeadName = "RTRIM(F2001_CODE) as F2001_CODE,RTRIM(F2006_CODE) as F2006_CODE,RTRIM(F2006_DESC) as F2006_DESC,F2006_ADDR,F2006_RXDATALEN,F2006_DATALENHL,F2006_METHOD,F2006_RXDATALENBIT,F2006_RXDATALENBITHL,F2006_HASINVALIDVAL,F2006_INVALIDIFVAL,F2006_INVALIDREVAL,F2006_FUNCODE";
 	CString sqlStr;
 	sqlStr.Format("select %s from TB2006_DDGROUP where F2001_CODE = '%s' order by cast(F2006_CODE as int)",ddGroupHeadName, id);
 	
@@ -2060,6 +2063,8 @@ void CModbusConfigDialogDlg::ddGroupResultFormat(int nrownum, int ncolnum, char 
 		gDdType.ddseclen++;
 		int ddssindex = gDdType.ddseclen-1;
 		gDdType.m_ddss[ddssindex].ddslen = 0;
+
+		gDdType.m_ddss[ddssindex].funcode = argv[offset + 12] ? atoi(argv[offset + 12]) :3;
 		gDdType.m_ddss[ddssindex].addr = atoi(argv[offset + 3]);
 		gDdType.m_ddss[ddssindex].startindex =  0;
 		gDdType.m_ddss[ddssindex].dddatalen = atoi(argv[offset + 4]);
