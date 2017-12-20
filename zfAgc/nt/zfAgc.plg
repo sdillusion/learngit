@@ -1,0 +1,57 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: zfAgc - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x804 /fo"Debug/zfAgc.res" /d "_DEBUG" /d "_AFXDLL" "D:\code\VC6\zfAgc\nt\zfAgc.rc"" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPC2CB.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_AFXEXT" /FR"Debug/" /Fp"Debug/zfAgc.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\code\VC6\zfAgc\nt\zfAgc.cpp"
+]
+Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSPC2CB.tmp" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPC2CC.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_AFXEXT" /FR"Debug/" /Fp"Debug/zfAgc.pch" /Yc"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\code\VC6\zfAgc\nt\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSPC2CC.tmp" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPC2CD.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_AFXEXT" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\code\VC6\zfAgc\src\agc.cpp"
+]
+Creating command line "cl.exe @C:\Users\illusion\AppData\Local\Temp\RSPC2CD.tmp" 
+Creating temporary file "C:\Users\illusion\AppData\Local\Temp\RSPC2DD.tmp" with contents
+[
+libcomm.lib liblog.lib /nologo /subsystem:windows /dll /incremental:yes /pdb:"Debug/zfAgc.pdb" /debug /machine:I386 /def:".\zfAgc.def" /out:"Debug/zfAgc.dll" /implib:"Debug/zfAgc.lib" /pdbtype:sept 
+.\Debug\StdAfx.obj
+.\Debug\zfAgc.obj
+.\Debug\zfAgc.res
+.\Debug\agc.obj
+]
+Creating command line "link.exe @C:\Users\illusion\AppData\Local\Temp\RSPC2DD.tmp"
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+zfAgc.cpp
+Compiling...
+agc.cpp
+Linking...
+   Creating library Debug/zfAgc.lib and object Debug/zfAgc.exp
+Creating command line "bscmake.exe /nologo /o"Debug/zfAgc.bsc"  .\Debug\StdAfx.sbr .\Debug\zfAgc.sbr .\Debug\agc.sbr"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+zfAgc.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
