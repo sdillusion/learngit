@@ -78,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 libcomm.lib liblog.lib sqlite3.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 libcomm.lib liblog.lib sqlite3.lib librdb.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
