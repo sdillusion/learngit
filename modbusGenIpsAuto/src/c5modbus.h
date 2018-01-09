@@ -158,14 +158,11 @@ public:
 
 	void   Init2();
 
-
 	void interleavedInit();
 
 	bool CheckHeartBeat();
 	void SendHeartBeat();
 	bool IsNeedToSendHeartBeat(int now);
-
-	//bool CheckCbCrc();
 
 	short int CalcYcShortVal(BYTE HighByte,BYTE LowByte);
 	int makeBitYxVal(int len, char horl, unsigned char*buf);
@@ -178,33 +175,15 @@ public:
 
 	void ProcessBuf(uint8* buf, sint32 rtuno, int buflen, int datalen);
 
-//	int analysisYc(unsigned char* buf, int index, char cbdatahorl);
-//	int analysisYx(unsigned char* buf, int index, char cbdatahorl);
-//	int analysisDd(unsigned char* buf, int index, char cbdatahorl);
-
 	int Int2(unsigned char* buf, int index, char cbdatahorl);
-	//int Int2H(unsigned char* buf, int index, char cbdatahorl);
 	int Int4(unsigned char* buf, int index, char cbdatahorl);
-	//int Int4H(unsigned char* buf, int index, char cbdatahorl);
 	int UInt2(unsigned char* buf, int index, char cbdatahorl);
-	//int UInt2H(unsigned char* buf, int index, char cbdatahorl);
 	int UInt4(unsigned char* buf, int index, char cbdatahorl);
-	//int UInt4H(unsigned char* buf, int index, char cbdatahorl);
-	//float Float4L(unsigned char* buf, int index, char cbdatahorl);
-	//float Float4H(unsigned char* buf, int index, char cbdatahorl);
 	float Float4(unsigned char* buf, int index, char cbdatahorl);
-	//float Float4_DD1L(unsigned char* buf, int index, char cbdatahorl);
-	//float Float4_DD1H(unsigned char* buf, int index, char cbdatahorl);
 	float Float4_DD1(unsigned char* buf, int index, char cbdatahorl);
-	//int EX_INT8_PM800L(unsigned char* buf, int index, char cbdatahorl);
-	//int EX_INT8_PM800H(unsigned char* buf, int index, char cbdatahorl);
 	int EX_INT8_PM800(unsigned char* buf, int index, char cbdatahorl);
 	int yxbit(unsigned char*buf, int index, char cbdatahorl);
 	int yxchar(unsigned char* buf, int index, char cbdatahorl);
-
-	int IpsYc(unsigned char* buf, int index, char cbdatahorl);
-	int IpsYx(unsigned char* buf, int index, char cbdatahorl);
-	int IpsDd(unsigned char* buf, int index, char cbdatahorl);
 
 	int NewIpsYc(unsigned char* pData, int index, char cbdatahorl);
 
@@ -228,7 +207,6 @@ public:
 	bool m_isInited;//是否已经初始化
 	int m_systemInitTime;//系统初始化时间
 
-	//int m_isSendBuf;//是否暂停发送报文，1发送，0不发送
 	int m_nowBigid;//现规约id,从c2数据库读取
 	int m_nowBigname;//现设备注册id
 	char m_nowBigName[CHARLEN];//现设备注册id
@@ -244,20 +222,15 @@ public:
 	int m_lastHertTime;//上次心跳时间
 	int m_lastcbdataTime;//上次dtu回报文时间
 	
-	//char m_devid[IDLEN];//设备注册号
 	char m_ghearthead[IDLEN];//心跳报文内容
 	char m_gregistehead[IDLEN];//注册报文头
 	char m_gregistetail[IDLEN];//注册报文尾
 	char m_gcbheartsucceed[IDLEN];//心跳注册成功返回报文
 	char m_gcbheartfail[IDLEN];//心跳注册失败返回报文
 
-	//uint8  m_gshellheadbuf[32];
-	//uint8  m_gshelltailbuf[32];
 
 	int m_gisregiste;//是否有注册
 	int m_gisheartbeat;//是否有心跳报文
-	//int m_grutInterval;//RTU时间间隔
-	//int m_gcbtimeout;//返回超时时间
 	int m_greqInterval;//请求时间间隔
 	char m_gregisterhorl;//寄存器地址高低位规则：h高位在前、l低位在前
 	char m_gcheckhorl;//校验码高低位规则：h高位在前、l低位在前
@@ -265,13 +238,8 @@ public:
 	int m_gcbheartbeat;//心跳报文反馈,是否有反馈回来
 	int m_gdevonline;//设备ips是否在线
 	int m_gdtuonline;//dtu是否在线
-	//int m_gshellheadLen;//外壳头内容长度
-	//int m_gshelltailLen;//外壳尾内容长度
 
 	int m_gcheckcrc;//请求报文是否有crc校验,同时也表示了返回报文校验类型
-	//int m_gcbdatalenbit;//返回报文数据数量所占位数
-	//char m_gcbdatalenhorl;//返回报文数据长度高低位规则
-
 	
 	ycsection m_ycss[SECTIONNUM];
 	yxsection m_yxss[SECTIONNUM];

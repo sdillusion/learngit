@@ -1644,90 +1644,22 @@ int CC5Modbus::analysisBuffer(unsigned char* buf, int method, int index, char cb
 	}
 	return 0;
 }
-/*
-int CC5Modbus::analysisYc(unsigned char* buf, int index, char cbdatahorl){
-	m_iResult = buf[2*index] + buf[2*index+1]*256;
-	return 0;
-}
-
-int CC5Modbus::analysisYx(unsigned char* buf, int index, char cbdatahorl){
-	m_iResult = buf[index];
-	return 0;
-}
-
-int CC5Modbus::analysisDd(unsigned char* buf, int index, char cbdatahorl){
-	m_iResult = sixteen2uint(buf + 4*index, 4, 'h');
-	return 0;
-}
-*/
 int CC5Modbus::Int2(unsigned char* pData, int index, char cbdatahorl){
-	//m_iResult = pData[2*index+1] + pData[2*index]*256;
 	m_iResult = sixteen2int(pData + 2*index, 2, cbdatahorl);
 	return 0;
 }
-/*
-int CC5Modbus::Int2H(unsigned char* pData, int index, char cbdatahorl){
-	m_iResult = pData[2*index] + pData[2*index+1]*256;
-	return 0;
-}
-*/
 int CC5Modbus::Int4(unsigned char* buf, int index, char cbdatahorl){
-	//m_iResult = sixteen2int(buf + 4*index, 4, 'l');
 	m_iResult = sixteen2int(buf + 4*index, 4, cbdatahorl);
 	return 0;
 }
-/*
-int CC5Modbus::Int4H(unsigned char* buf, int index, char cbdatahorl){
-	//m_iResult = sixteen2int(buf + 4*index, 4, 'h');
-	m_iResult = sixteen2int(buf + 4*index, 4, cbdatahorl);
-	return 0;
-}
-*/
 int CC5Modbus::UInt2(unsigned char* buf, int index, char cbdatahorl){
-	//m_iResult = sixteen2uint(buf + 2*index, 2, 'l');
 	m_iResult = sixteen2uint(buf + 2*index, 2, cbdatahorl);
 	return 0;
 }
-/*
-int CC5Modbus::UInt2H(unsigned char* buf, int index, char cbdatahorl){
-	//m_iResult = sixteen2uint(buf + 2*index, 2, 'h');
-	m_iResult = sixteen2uint(buf + 2*index, 2, cbdatahorl);
-	return 0;
-}
-*/
 int CC5Modbus::UInt4(unsigned char* buf, int index, char cbdatahorl){
-	//m_iResult = sixteen2uint(buf + 4*index, 4, 'l');
 	m_iResult = sixteen2uint(buf + 4*index, 4, cbdatahorl);
 	return 0;
 }
-/*
-int CC5Modbus::UInt4H(unsigned char* buf, int index, char cbdatahorl){
-	//m_iResult = sixteen2uint(buf + 4*index, 4, 'h');
-	m_iResult = sixteen2uint(buf + 4*index, 4, cbdatahorl);
-	return 0;
-}
-float CC5Modbus::Float4L(unsigned char* buf, int index, char cbdatahorl){
-	float total;
-	unsigned char *r;
-	r=(unsigned char*)&total;
-	*r=buf[3+4*index];r++;
-	*r=buf[2+4*index];r++;
-	*r=buf[1+4*index];r++;
-	*r=buf[0+4*index];
-	m_fResult = total;
-	return 0;
-}
-float CC5Modbus::Float4H(unsigned char* buf, int index, char cbdatahorl){
-	float total;
-	unsigned char *r;
-	r=(unsigned char*)&total;
-	*r=buf[0+4*index];r++;
-	*r=buf[1+4*index];r++;
-	*r=buf[2+4*index];r++;
-	*r=buf[3+4*index];
-	m_fResult = total;
-	return 0;
-}*/
 float CC5Modbus::Float4(unsigned char* buf, int index, char cbdatahorl){
 	float total;
 	unsigned char *r;
@@ -1746,27 +1678,6 @@ float CC5Modbus::Float4(unsigned char* buf, int index, char cbdatahorl){
 	m_fResult = total;
 	return 0;
 }
-/*
-float CC5Modbus::Float4_DD1L(unsigned char* buf, int index, char cbdatahorl){
-	float  YC_1,F;
-	uint32 YC_32, E_1;
-	short  S,E;
-	YC_32 = buf[2+4*index] * 256 * 256 * 256 + buf[3+4*index] * 256 * 256 + buf[0+4*index] * 256 + buf[1+4*index];
-	S=(YC_32>>31)&0x00000001;
-	E=(YC_32>>23)&0x000000ff;
-	F=YC_32 & 0x007fffff;
-	if((E-127)<0)
-		E_1=1/pow(2.0,abs(E-127));
-	else
-		E_1=pow(2.0,(E-127));
-	YC_1=(1-2*S)*(1+F/pow(2.0,23))*E_1;
-	m_fResult = YC_1;
-	return 0;
-}
-float CC5Modbus::Float4_DD1H(unsigned char* buf, int index, char cbdatahorl){
-	return 0;
-}
-*/
 //IEEE-754浮点型数据格式
 float CC5Modbus::Float4_DD1(unsigned char* buf, int index, char cbdatahorl){
 	float  YC_1,F;
@@ -1788,20 +1699,6 @@ float CC5Modbus::Float4_DD1(unsigned char* buf, int index, char cbdatahorl){
 	m_fResult = YC_1;
 	return 0;
 }
-/*
-int CC5Modbus::EX_INT8_PM800L(unsigned char* buf, int index, char cbdatahorl){
-	int t1=buf[0]*0x100+buf[1];
-	int t2=buf[2]*0x100+buf[3];
-	int t3=buf[4]*0x100+buf[5];
-	int t4=buf[6]*0x100+buf[7];
-	float val=(t1+t2*10000+t3*100000000+(float)t4*1000000000000.0)/1000;//单位变成MW
-	m_fResult = val;
-	return 0;
-}
-int CC5Modbus::EX_INT8_PM800H(unsigned char* buf, int index, char cbdatahorl){
-	return 0;
-}
-*/
 int CC5Modbus::EX_INT8_PM800(unsigned char* buf, int index, char cbdatahorl){
 	int t1=buf[0+8*index]*0x100+buf[1+8*index];
 	int t2=buf[2+8*index]*0x100+buf[3+8*index];
@@ -1846,82 +1743,6 @@ int CC5Modbus::yxchar(unsigned char* buf, int index, char cbdatahorl){
 			m_iResult = value & 0x0100;
 		}
 	}
-	return 0;
-}
-
-int CC5Modbus::IpsYc(unsigned char* pData, int index, char cbdatahorl){
-	sint16 value=0;
-	int len_num=0;
-
-	switch(m_gcuryc)
-	{
-	case 0://电流
-		len_num=4;
-		break;
-	case 1://电压
-		len_num=7;
-		break;
-	case 2://功率
-		len_num=12;
-		break;
-	case 3://功率因数
-		len_num=5;
-		break;
-	case 4://频率
-		len_num=1;
-		break;
-
-	default:
-		return -1;
-	}
-	uint16 u16;
-	short int s16;
-
-	pData+=2 * index;
-	if ((m_gcuryc)==0||(m_gcuryc)==1||(m_gcuryc)==4){
-		u16=pData[0]*0x100+pData[1];
-		s16=pData[0]*0x100+pData[1];
-		if(s16==-32768)
-			m_iResult = 0;
-		else
-			m_iResult = u16;
-	}else if ((m_gcuryc)==2){
-		s16=pData[0]*0x100+pData[1];
-		if(s16==-32768)
-			m_iResult = 0;
-		else
-			m_iResult = s16;
-	}else if ((m_gcuryc)==3){
-		s16=CalcYcShortVal(pData[0],pData[1]);
-		if(s16==-32768)
-			m_iResult = 0;
-		else
-			m_iResult = s16;
-	}
-	return 0;
-}
-
-int CC5Modbus::IpsYx(unsigned char* pData, int index, char cbdatahorl){
-
-	sint16 value=pData[1]+pData[0]*0x100;//这里注意高低字节的顺序
-	
-	if (value&0x0002)
-	    m_iResult = 1;
-	else
-	    m_iResult = 0;
-
-	return 0;
-}
-
-int CC5Modbus::IpsDd(unsigned char* pData, int index, char cbdatahorl){
-	float t1,t2,t3,t4;
-	pData += 8 * index;
-	t1=pData[0]*0x100+pData[1];
-	t2=pData[2]*0x100+pData[3];
-	t3=pData[4]*0x100+pData[5];
-	t4=pData[6]*0x100+pData[7];
-    m_fResult = t1/1000+t2*10+t3*100000+t4*1000000000;//单位kwh
-
 	return 0;
 }
 
